@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "devu",
+  "main": "devrock.js",
+  "scripts": {
+    "start": "node devrock.js",
+    "dev": "nodemon devrock.js"
+  },
+  "dependencies": {
+    "@discordjs/voice": "^0.17.0",
+    "@flytri/lyrics-finder": "^1.0.7",
+    "@iamtraction/google-translate": "^2.0.1",
+    "@napi-rs/canvas": "^0.1.77",
+    "archiver": "^7.0.1",
+    "axios": "^1.11.0",
+    "canvacard": "^6.0.5",
+    "canvacord": "^6.0.4",
+    "canvafy": "^7.2.1",
+    "canvas": "^3.1.2",
+    "delay": "^6.0.0",
+    "discord-api-types": "^0.38.37",
+    "discord-hybrid-sharding": "^2.2.6",
+    "discord.js": "14.22.1",
+    "dokdo": "^1.0.1",
+    "kazagumo": "^3.4.1",
+    "kazagumo-spotify": "^2.1.1",
+    "moment": "^2.30.1",
+    "moment-duration-format": "^2.3.2",
+    "moment-timezone": "^0.5.48",
+    "mongoose": "^8.17.1",
+    "musicard": "^2.0.5",
+    "musicard-quartz": "^1.0.0",
+    "quickchart-js": "^3.1.3",
+    "shoukaku": "^4.3.0",
+    "songcard": "^1.4.1",
+    "undici": "^6.0.0"
+  }
+}
