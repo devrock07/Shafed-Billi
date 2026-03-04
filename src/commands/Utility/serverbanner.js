@@ -1,0 +1,124 @@
+const {
+    ContainerBuilder,
+    TextDisplayBuilder,
+    SeparatorBuilder,
+    MediaGalleryBuilder,
+    MediaGalleryItemBuilder,
+    MessageFlags
+} = require('discord.js');
+
+module.exports = {
+    name: 'serverbanner',
+    aliases: ['sbanner', 'guildbanner'],
+    description: "Displays the server's banner with download link.",
+    category: 'Utility',
+    slashOptions: [
+        {
+            name: 'guildid',
+            description: 'The guild ID to view banner from',
+            type: 3,
+            required: false
+        }
+    ],
+    args: false,
+    usage: "[guildid]",
+    userPerms: [],
+    owner: false,
+
+    async slashExecute(interaction, client) {
+        const interactionWrapper = {
+            guild: interaction.guild,
+            channel: interaction.channel,
+            author: interaction.user,
+            member: interaction.member,
+            createdTimestamp: interaction.createdTimestamp,
+            reply: async (options) => {
+                if (interaction.deferred) {
+                    return await interaction.editReply(options);
+                } else if (interaction.replied) {
+                    return await interaction.followUp(options);
+                } else {
+                    return await interaction.reply(options);
+                }
+            },
+        };
+
+        const args = [];
+        const guildId = interaction.options.getString('guildid');
+        if (guildId) {
+            args.push(guildId);
+        }
+
+        const prefix = client.prefix;
+        return this.execute(interactionWrapper, args, client, prefix);
+    },
+
+    async execute(message, args, client) {
+        let guild;
+
+        if (args.length > 0) {
+            try {
+                guild = await client.guilds.fetch(args[0]);
+            } catch (error) {
+                const errorDisplay = new TextDisplayBuilder()
+                    .setContent(`Could not find a server with ID: \`${args[0]}\``);
+
+                const errorContainer = new ContainerBuilder()
+                    .addTextDisplayComponents(errorDisplay);
+
+                return message.reply({
+                    content: '',
+                    components: [errorContainer],
+                    flags: MessageFlags.IsComponentsV2
+                });
+            }
+        } else {
+            guild = message.guild;
+        }
+
+        const bannerURL = guild.bannerURL({ size: 512, extension: 'png' });
+
+        if (!bannerURL) {
+            const errorDisplay = new TextDisplayBuilder()
+                .setContent(`${client.emoji.warn} **\`${guild.name}\`** does not have a server banner set.`);
+
+            const errorContainer = new ContainerBuilder()
+                .addTextDisplayComponents(errorDisplay);
+
+            return message.reply({
+                content: '',
+                components: [errorContainer],
+                flags: MessageFlags.IsComponentsV2
+            });
+        }
+
+        const header = new TextDisplayBuilder()
+            .setContent(`### ${guild.name}'s Banner\n-# Requested by ${message.author.username} • <t:${Math.floor(Date.now() / 1000)}:t>`);
+
+        const separator1 = new SeparatorBuilder();
+
+        const links = new TextDisplayBuilder()
+            .setContent(`[\`Download\`](${bannerURL})`);
+
+        const separator2 = new SeparatorBuilder();
+
+        const mediaItem = new MediaGalleryItemBuilder()
+            .setURL(bannerURL);
+
+        const mediaGallery = new MediaGalleryBuilder()
+            .addItems(mediaItem);
+
+        const container = new ContainerBuilder()
+            .addTextDisplayComponents(header)
+            .addSeparatorComponents(separator1)
+            .addTextDisplayComponents(links)
+            .addSeparatorComponents(separator2)
+            .addMediaGalleryComponents(mediaGallery);
+
+        await message.reply({
+            content: '',
+            components: [container],
+            flags: MessageFlags.IsComponentsV2
+        });
+    }
+};
