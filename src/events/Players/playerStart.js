@@ -19,6 +19,12 @@ module.exports = {
       const channel = client.channels.cache.get(player.textId);
       if (!channel) return;
 
+      try {
+        if (!player.data) player.data = new Map();
+        player.data.set("lastTrack", track);
+        client.voiceHealthMonitor?.updateActivity(player.guildId);
+      } catch { }
+
       const container = await createNowPlayingContainer(client, player, track);
 
       const message = await channel.send({

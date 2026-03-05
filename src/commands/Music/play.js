@@ -164,6 +164,9 @@ module.exports = {
             deaf: true,
           });
 
+          try {
+            client.voiceHealthMonitor?.startMonitoring(player);
+          } catch {}
         } catch (createError) {
           console.error("Player creation error:", createError);
 
@@ -186,6 +189,9 @@ module.exports = {
               });
 
               console.log(`Successfully recreated player for guild ${interaction.guild.id}`);
+              try {
+                client.voiceHealthMonitor?.startMonitoring(player);
+              } catch {}
             } catch (retryError) {
               console.error("Player creation retry error:", retryError);
               throw new Error(`Voice connection failed after retry: ${retryError.message}`);
@@ -700,6 +706,9 @@ module.exports = {
             deaf: true,
           });
 
+          try {
+            client.voiceHealthMonitor?.startMonitoring(player);
+          } catch {}
         } catch (createError) {
           console.error("Player creation error:", createError);
           // NEW Debug info for 400 errors
@@ -727,6 +736,9 @@ module.exports = {
               });
 
               console.log(`Successfully recreated player for guild ${message.guild.id}`);
+              try {
+                client.voiceHealthMonitor?.startMonitoring(player);
+              } catch {}
             } catch (retryError) {
               console.error("Player creation retry error:", retryError);
               throw new Error(`Voice connection failed after retry: ${retryError.message || 'Unknown Error'}`);

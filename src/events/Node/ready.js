@@ -17,6 +17,8 @@ module.exports = {
       "ready",
     );
 
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
     for (const data of maindata) {
       try {
         const channel = client.channels.cache.get(data.TextId);
@@ -54,19 +56,56 @@ module.exports = {
           continue;
         }
 
-        const player = await client.manager.createPlayer({
-          guildId: data.Guild,
-          voiceId: data.VoiceId,
-          textId: data.TextId,
-          deaf: true,
-          volume: 80,
-        });
+        let player = client.manager.players.get(data.Guild);
+        if (player) {
+          try {
+            player.setVoiceChannel(data.VoiceId);
+            if (player.state !== "CONNECTED") {
+              await player.connect();
+            }
+          } catch {}
+        } else {
+          let attempt = 0;
+          let created = false;
+          const maxAttempts = 3;
+          while (attempt < maxAttempts && !created) {
+            attempt++;
+            try {
+              player = await client.manager.createPlayer({
+                guildId: data.Guild,
+                voiceId: data.VoiceId,
+                textId: data.TextId,
+                deaf: true,
+                volume: 80,
+              });
+              created = true;
+            } catch (e) {
+              client.logger.log(
+                `Auto Reconnect: Attempt ${attempt} failed for guild ${data.Guild} (${e.message || e}).`,
+                "warn"
+              );
+              await sleep(500 * attempt + Math.floor(Math.random() * 300));
+            }
+          }
+          if (!created) {
+            client.logger.log(
+              `Auto Reconnect: Failed to recreate player after ${maxAttempts} attempts for guild ${data.Guild}.`,
+              "error"
+            );
+            continue;
+          }
+        }
 
         client.logger.log(
           `Auto Reconnect: Successfully reconnected to ${voice.name} in ${voice.guild.name}`,
           "ready"
         );
 
+        try {
+          if (client.voiceHealthMonitor && player) {
+            client.voiceHealthMonitor.startMonitoring(player);
+          }
+        } catch {}
 
         await new Promise((resolve) =>
           setTimeout(resolve, Math.floor(Math.random() * (780 - 500 + 1)) + 500),

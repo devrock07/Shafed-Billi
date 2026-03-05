@@ -63,7 +63,58 @@ module.exports = {
         status: "online",
       });
     }, 10000);
+
+    try {
+      setTimeout(async () => {
+        try {
+          const TwoFourSeven = require("../../schema/247");
+          const entries = await TwoFourSeven.find();
+          if (!entries || entries.length === 0) {
+            return;
+          }
+
+          const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+          for (const data of entries) {
+            try {
+              const text = client.channels.cache.get(data.TextId);
+              const voice = client.channels.cache.get(data.VoiceId);
+              if (!text || !voice) continue;
+
+              const guild = voice.guild;
+              const me = guild.members.cache.get(client.user.id);
+              if (!me) continue;
+              const perms = voice.permissionsFor(me);
+              if (!perms || !perms.has(["Connect", "Speak"])) continue;
+
+              let player = client.manager.players.get(data.Guild);
+              if (!player) {
+                try {
+                  player = await client.manager.createPlayer({
+                    guildId: data.Guild,
+                    voiceId: data.VoiceId,
+                    textId: data.TextId,
+                    deaf: true,
+                    volume: 80,
+                  });
+                  client.voiceHealthMonitor?.startMonitoring(player);
+                  client.logger.log(
+                    `Auto Reconnect (clientReady): joined ${voice.name} in ${guild.name}`,
+                    "ready"
+                  );
+                } catch (e) {
+                  client.logger.log(
+                    `Auto Reconnect (clientReady) failed for guild ${data.Guild}: ${e.message || e}`,
+                    "warn"
+                  );
+                }
+                await sleep(300);
+              }
+            } catch {}
+          }
+        } catch {}
+      }, 5000);
+    } catch {}
   },
 };
-
 

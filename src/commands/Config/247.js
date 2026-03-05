@@ -126,6 +126,9 @@ module.exports = {
             deaf: true,
             volume: 80
           });
+          try {
+            client.voiceHealthMonitor?.startMonitoring(currentPlayer);
+          } catch {}
         }
 
         const successDisplay = new TextDisplayBuilder()
@@ -267,6 +270,9 @@ module.exports = {
                 deaf: true,
                 volume: 80
               });
+              try {
+                client.voiceHealthMonitor?.startMonitoring(player);
+              } catch {}
             }
 
             const successDisplay = new TextDisplayBuilder()
