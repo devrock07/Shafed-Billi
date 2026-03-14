@@ -54,7 +54,7 @@
    ```
 
 ## 📜 Credits & License
- <img src="https://raw.githubusercontent.com/devrock07/Shafed-Billi/refs/heads/main/blazee.png" alt="Og Dev" width="800">
+ <img src="https://raw.githubusercontent.com/devrock07/Shafed-Billi/refs/heads/main/bkl-blazzeee.png" alt="Og Dev" width="800">
   <br>
 **Developed with ❤️ by DEVROCK.**
 
