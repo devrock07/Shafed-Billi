@@ -81,20 +81,17 @@ const generateCategoryBanner = async (client, categoryName, categoryEmoji) => {
         ctx.stroke();
     }
 
-    // --- Glassmorphism Panel (Simulated) ---
     ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
-    ctx.beginPath();
-    ctx.roundRect(260, 40, width - 300, height - 80, 20);
-    ctx.fill();
+    ctx.fillRect(260, 40, width - 300, height - 80);
     ctx.strokeStyle = 'rgba(255, 20, 147, 0.1)';
     ctx.lineWidth = 2;
-    ctx.stroke();
+    ctx.strokeRect(260, 40, width - 300, height - 80);
 
     // --- Bot Avatar Layer ---
     try {
         const avatarParams = { extension: 'png', size: 256 };
         const avatarUrl = client.user.displayAvatarURL(avatarParams);
-        const res = await axios.get(avatarUrl, { responseType: 'arraybuffer' });
+        const res = await axios.get(avatarUrl, { responseType: 'arraybuffer', timeout: 3000 });
         const avatarImage = await loadImage(Buffer.from(res.data));
 
         // Main Avatar Circle
@@ -171,8 +168,12 @@ const generateCategoryBanner = async (client, categoryName, categoryEmoji) => {
     ctx.closePath();
     ctx.fill();
 
-    const pngData = await canvas.encode('png');
-    return pngData;
+    try {
+        const pngData = await canvas.encode('png');
+        return pngData;
+    } catch {
+        return null;
+    }
 };
 
 module.exports = {
@@ -382,14 +383,12 @@ module.exports = {
             }
         }
 
-        // Generate home banner
         const homeBannerData = await generateCategoryBanner(client, 'Help Menu', '🏠');
         const attachmentName = 'help-banner.png';
-        const attachment = new AttachmentBuilder(homeBannerData, { name: attachmentName });
-
-        const gallery = new MediaGalleryBuilder().addItems(
+        const attachment = homeBannerData ? new AttachmentBuilder(homeBannerData, { name: attachmentName }) : null;
+        const gallery = attachment ? new MediaGalleryBuilder().addItems(
             new MediaGalleryItemBuilder().setURL(`attachment://${attachmentName}`)
-        );
+        ) : null;
 
         const headerDisplay = new TextDisplayBuilder()
             .setContent(`### ${client.emoji.check} Shafed Billi Help\n-# Requested by ${interaction.user.username} • <t:${Math.floor(Date.now() / 1000)}:t>`);
@@ -430,18 +429,21 @@ module.exports = {
 
         const helpContainer = new ContainerBuilder()
             .addTextDisplayComponents(headerDisplay)
-            .addSeparatorComponents(separator)
-            .addMediaGalleryComponents(gallery)
-            .addSeparatorComponents(separator)
+            .addSeparatorComponents(separator);
+        if (gallery) {
+            helpContainer.addMediaGalleryComponents(gallery).addSeparatorComponents(separator);
+        }
+        helpContainer
             .addTextDisplayComponents(descriptionDisplay)
             .addSeparatorComponents(separator2)
             .addActionRowComponents(row);
 
-        const sentMessage = await interaction.editReply({
+        const sendPayload = {
             components: [helpContainer],
-            files: [attachment],
             flags: MessageFlags.IsComponentsV2
-        });
+        };
+        if (attachment) sendPayload.files = [attachment];
+        const sentMessage = await interaction.editReply(sendPayload);
 
         const collector = sentMessage.createMessageComponentCollector({ componentType: ComponentType.StringSelect, time: 60000 });
 
@@ -474,13 +476,11 @@ module.exports = {
             const commandsList = categoryData[selectedCategory];
             const info = categoryInfo[selectedCategory] || { emoji: '📁', description: `${selectedCategory.toLowerCase()} commands` };
 
-            // Generate category banner
             const categoryBannerData = await generateCategoryBanner(client, selectedCategory, info.emoji);
-            const categoryAttachment = new AttachmentBuilder(categoryBannerData, { name: attachmentName });
-
-            const categoryGallery = new MediaGalleryBuilder().addItems(
+            const categoryAttachment = categoryBannerData ? new AttachmentBuilder(categoryBannerData, { name: attachmentName }) : null;
+            const categoryGallery = categoryAttachment ? new MediaGalleryBuilder().addItems(
                 new MediaGalleryItemBuilder().setURL(`attachment://${attachmentName}`)
-            );
+            ) : null;
 
             const categoryHeader = new TextDisplayBuilder()
                 .setContent(`### ${client.emoji.check} ${selectedCategory} Commands\n-# Requested by ${interaction.user.username} • <t:${Math.floor(Date.now() / 1000)}:t>`);
@@ -511,9 +511,11 @@ module.exports = {
 
             const categoryContainer = new ContainerBuilder()
                 .addTextDisplayComponents(categoryHeader)
-                .addSeparatorComponents(catSeparator)
-                .addMediaGalleryComponents(categoryGallery)
-                .addSeparatorComponents(catSeparator)
+                .addSeparatorComponents(catSeparator);
+            if (categoryGallery) {
+                categoryContainer.addMediaGalleryComponents(categoryGallery).addSeparatorComponents(catSeparator);
+            }
+            categoryContainer
                 .addTextDisplayComponents(commandsDisplay)
                 .addSeparatorComponents(catSeparator2)
                 .addTextDisplayComponents(tipDisplay)
@@ -833,11 +835,12 @@ module.exports = {
                 .addTextDisplayComponents(tipDisplay)
                 .addActionRowComponents(row);
 
-            await interaction.update({
+            const updatePayload = {
                 components: [categoryContainer],
-                files: [categoryAttachment],
                 flags: MessageFlags.IsComponentsV2
-            });
+            };
+            if (categoryAttachment) updatePayload.files = [categoryAttachment];
+            await interaction.update(updatePayload);
         });
 
         collector.on('end', () => {
