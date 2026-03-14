@@ -251,30 +251,28 @@ module.exports = {
         ctx.fillText(`Database: ${db}ms`, 290, 240);
         ctx.fillText(`Lavalink: ${lavalink}ms`, 590, 240);
 
-        let pngData = null;
-        try {
-            pngData = await canvas.encode('png');
-        } catch {}
+        // 4. Create Attachment
+        const pngData = await canvas.encode('png');
         const attachmentName = 'stats.png';
+        const attachment = new AttachmentBuilder(pngData, { name: attachmentName });
+
+        // 5. MediaGallery
+        const gallery = new MediaGalleryBuilder().addItems(
+            new MediaGalleryItemBuilder().setURL(`attachment://${attachmentName}`)
+        );
+
+        // 6. Container with Text + Separator + Image
         const container = new ContainerBuilder()
             .addTextDisplayComponents(header)
-            .addTextDisplayComponents(latencyText);
-        if (pngData) {
-            const attachment = new AttachmentBuilder(pngData, { name: attachmentName });
-            const gallery = new MediaGalleryBuilder().addItems(
-                new MediaGalleryItemBuilder().setURL(`attachment://${attachmentName}`)
-            );
-            container.addSeparatorComponents(separator).addMediaGalleryComponents(gallery);
-            await loadingMsg.edit({
-                components: [container],
-                files: [attachment],
-                flags: MessageFlags.IsComponentsV2
-            });
-        } else {
-            await loadingMsg.edit({
-                components: [container],
-                flags: MessageFlags.IsComponentsV2
-            });
-        }
+            .addTextDisplayComponents(latencyText)
+            .addSeparatorComponents(separator)
+            .addMediaGalleryComponents(gallery);
+
+        // 7. Send (Edit loading message)
+        await loadingMsg.edit({
+            components: [container],
+            files: [attachment],
+            flags: MessageFlags.IsComponentsV2
+        });
     },
 };

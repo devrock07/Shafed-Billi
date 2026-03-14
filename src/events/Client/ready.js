@@ -46,7 +46,7 @@ module.exports = {
       const totalMembers = client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0);
       const statuses = [
         `Serving ${client.guilds.cache.size} Servers • ${totalMembers} Users`,
-        `Shafed Billi • High Quality Music`,
+        `MnaX • High Quality Music`,
         `/help • 24/7 Audio System`,
         `Vibing with ${totalMembers} Users`
       ];

@@ -14,6 +14,8 @@ module.exports = {
   name: "playerStart",
   run: async (client, player, track) => {
     if (!player || !track) return;
+    
+    console.log(`[LAVALINK] Player started in guild ${player.guildId} with track: ${track.title}`);
 
     try {
       const channel = client.channels.cache.get(player.textId);
@@ -24,6 +26,28 @@ module.exports = {
         player.data.set("lastTrack", track);
         client.voiceHealthMonitor?.updateActivity(player.guildId);
       } catch { }
+
+      try {
+        const { checkPremium } = require("../../utils/premiumUtils");
+        const { applyQualityFilters } = require("../../utils/playerUtils");
+        
+        let quality = "low";
+        const guild = client.guilds.cache.get(player.guildId);
+        
+        if (guild && track.requester) {
+          const isPremium = await checkPremium(client, track.requester, guild);
+          console.log(`[LAVALINK] Premium check for ${track.requester.tag || track.requester.id}: ${isPremium}`);
+          if (isPremium) {
+            quality = "premium";
+          }
+        }
+        
+        console.log(`[LAVALINK] Applying ${quality} quality filters to player in guild ${player.guildId}`);
+        // Temporarily re-enabling but with safe default to see if it works
+        await applyQualityFilters(player, quality);
+      } catch (error) {
+        console.error("Quality filter error in playerStart:", error);
+      }
 
       const container = await createNowPlayingContainer(client, player, track);
 

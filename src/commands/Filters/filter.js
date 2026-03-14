@@ -7,6 +7,7 @@ const {
 } = require('discord.js');
 
 const emoji = require("../../emojis");
+const { checkPremium } = require("../../utils/premiumUtils");
 
 
 module.exports = {
@@ -69,6 +70,22 @@ module.exports = {
                 components: [container],
                 flags: MessageFlags.IsComponentsV2
             });
+        }
+
+        try {
+            const isPremium = await checkPremium(client, message.author, message.guild);
+            
+            if (!isPremium) {
+                const infoDisplay = new TextDisplayBuilder()
+                    .setContent(`**${client.emoji.warn} Filters are premium-only.**\n> You need to be a global premium user or have the server's premium role to use filters.`);
+                const infoContainer = new ContainerBuilder().addTextDisplayComponents(infoDisplay);
+                return message.reply({
+                    components: [infoContainer],
+                    flags: MessageFlags.IsComponentsV2
+                });
+            }
+        } catch (error) {
+            console.error("Premium check error in filter command:", error);
         }
 
         const row4 = new ActionRowBuilder().addComponents(

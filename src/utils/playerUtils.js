@@ -188,4 +188,98 @@ async function attemptAutoplay(client, player) {
     }
 }
 
-module.exports = { safeDestroyPlayer, handleSessionError, recreatePlayer, attemptAutoplay };
+async function applyQualityFilters(player, quality) {
+    try {
+        if (!player) return;
+        
+        if (quality === "premium") {
+            // High-fidelity boost for premium users - CLEAR ALL FILTERS
+            const eq = [
+                { band: 0, gain: 0.12 },
+                { band: 1, gain: 0.08 },
+                { band: 2, gain: 0.04 },
+                { band: 3, gain: 0.00 },
+                { band: 4, gain: 0.00 },
+                { band: 5, gain: 0.00 },
+                { band: 6, gain: 0.00 },
+                { band: 7, gain: 0.00 },
+                { band: 8, gain: 0.00 },
+                { band: 9, gain: 0.00 },
+                { band: 10, gain: 0.02 },
+                { band: 11, gain: 0.05 },
+                { band: 12, gain: 0.08 },
+                { band: 13, gain: 0.10 },
+                { band: 14, gain: 0.12 }
+            ];
+            await player.shoukaku.setFilters({ 
+                equalizer: eq,
+                timescale: null,
+                tremolo: null,
+                vibrato: null,
+                rotation: null,
+                distortion: null,
+                karaoke: null,
+                lowPass: null,
+                channelMix: null
+            });
+        } else {
+            // Intentionally "noticeably lower quality" (about 30% different) for non-premium users
+            // 1. "Low Fidelity" EQ (Slightly muffled highs, boosted mids, cut bass)
+            const badEq = [
+                { band: 0, gain: -0.20 },
+                { band: 1, gain: -0.20 },
+                { band: 2, gain: -0.15 },
+                { band: 3, gain: -0.10 },
+                { band: 4, gain: 0.05 },
+                { band: 5, gain: 0.15 },  // Boost mid for "tinny" sound
+                { band: 6, gain: 0.20 },
+                { band: 7, gain: 0.20 },
+                { band: 8, gain: 0.15 },
+                { band: 9, gain: -0.10 },
+                { band: 10, gain: -0.15 },
+                { band: 11, gain: -0.20 },
+                { band: 12, gain: -0.25 },
+                { band: 13, gain: -0.30 },
+                { band: 14, gain: -0.35 }
+            ];
+
+            // 2. Slightly slower speed and lower pitch (Noticeable but easy to understand)
+            const timescale = {
+                speed: 0.88,   // Slower
+                pitch: 0.92,   // Lower pitch (makes it feel "heavy")
+                rate: 1.0
+            };
+
+            // 3. Subtle Vibrato (Small "pitch wobble")
+            const vibrato = {
+                frequency: 1.5,
+                depth: 0.2
+            };
+
+            // 4. Subtle Tremolo (Small "volume pulse")
+            const tremolo = {
+                frequency: 2.0,
+                depth: 0.2
+            };
+
+            // 5. Very slow Rotation (Slowly moves between ears)
+            const rotation = {
+                rotationHz: 0.15
+            };
+
+            await player.shoukaku.setFilters({ 
+                equalizer: badEq,
+                timescale: timescale,
+                vibrato: vibrato,
+                tremolo: tremolo,
+                rotation: rotation,
+                lowPass: null,
+                distortion: null
+            });
+        }
+    } catch (error) {
+        console.error("Error applying quality filters:", error);
+    }
+}
+
+module.exports = { safeDestroyPlayer, handleSessionError, recreatePlayer, attemptAutoplay, applyQualityFilters };

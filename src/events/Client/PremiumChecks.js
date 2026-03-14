@@ -1,6 +1,7 @@
 
 
 const Noprefix = require("../../schema/noprefix");
+const PremiumUser = require("../../schema/premiumuser");
 const {
   ContainerBuilder,
   TextDisplayBuilder,
@@ -18,55 +19,73 @@ const cleanExpiredPermissions = async (client) => {
 
     const now = new Date();
 
+    // 1. Cleanup NoPrefix
     const expiredNoprefix = await Noprefix.find({ expiresAt: { $lt: now } })
       .maxTimeMS(5000)
       .lean();
 
-    if (expiredNoprefix.length === 0) {
-      return;
-    }
+    if (expiredNoprefix.length > 0) {
+      const notifiedUsers = new Set();
+      const userIds = [...new Set(expiredNoprefix.map(entry => entry.userId))];
 
-    const notifiedUsers = new Set();
-    const userIds = [...new Set(expiredNoprefix.map(entry => entry.userId))];
+      for (const entry of expiredNoprefix) {
+        await Noprefix.deleteOne({ _id: entry._id });
+        console.log(`[Handler] Removed expired NoPrefix for user ${entry.userId}.`);
+      }
 
-    for (const entry of expiredNoprefix) {
-      await Noprefix.deleteOne({ _id: entry._id });
-      console.log(
-        `[Handler] Removed expired NoPrefix for user ${entry.userId}.`
-      );
-    }
-
-    for (const userId of userIds) {
-      if (notifiedUsers.has(userId)) continue;
-
-      try {
-        const user = await client.users.fetch(userId);
-        if (user) {
-          const expiredDisplay = new TextDisplayBuilder()
-            .setContent(
-              `**${client.emoji.info} Your Global No-Prefix Access has expired.**\n\n` +
-              `You no longer have permission to use commands without a prefix.\n` +
-              `If you need continued access, please contact the bot owner.`
-            );
-
-          const container = new ContainerBuilder()
-            .addTextDisplayComponents(expiredDisplay);
-
-          await user.send({
-            components: [container],
-            flags: MessageFlags.IsComponentsV2
-          });
-
-          notifiedUsers.add(userId);
-          console.log(
-            `[Handler] Notified user ${userId} about NoPrefix expiration.`
-          );
+      for (const userId of userIds) {
+        if (notifiedUsers.has(userId)) continue;
+        try {
+          const user = await client.users.fetch(userId);
+          if (user) {
+            const expiredDisplay = new TextDisplayBuilder()
+              .setContent(
+                `**${client.emoji.info} Your Global No-Prefix Access has expired.**\n\n` +
+                `You no longer have permission to use commands without a prefix.\n` +
+                `If you need continued access, please contact the bot owner.`
+              );
+            const container = new ContainerBuilder().addTextDisplayComponents(expiredDisplay);
+            await user.send({ components: [container], flags: MessageFlags.IsComponentsV2 });
+            notifiedUsers.add(userId);
+          }
+        } catch (error) {
+          console.warn(`[Handler] Could not notify user ${userId}:`, error.message);
         }
-      } catch (error) {
-        console.warn(
-          `[Handler] Could not notify user ${userId}:`,
-          error.message
-        );
+      }
+    }
+
+    // 2. Cleanup Global Premium User
+    const expiredPremiumUsers = await PremiumUser.find({ expiresAt: { $lt: now } })
+      .maxTimeMS(5000)
+      .lean();
+
+    if (expiredPremiumUsers.length > 0) {
+      const notifiedUsers = new Set();
+      const userIds = [...new Set(expiredPremiumUsers.map(entry => entry.userId))];
+
+      for (const entry of expiredPremiumUsers) {
+        await PremiumUser.deleteOne({ _id: entry._id });
+        console.log(`[Handler] Removed expired PremiumUser for user ${entry.userId}.`);
+      }
+
+      for (const userId of userIds) {
+        if (notifiedUsers.has(userId)) continue;
+        try {
+          const user = await client.users.fetch(userId);
+          if (user) {
+            const expiredDisplay = new TextDisplayBuilder()
+              .setContent(
+                `**${client.emoji.info} Your Global Premium User status has expired.**\n\n` +
+                `You no longer have access to premium features in all servers.\n` +
+                `If you need continued access, please contact the bot owner.`
+              );
+            const container = new ContainerBuilder().addTextDisplayComponents(expiredDisplay);
+            await user.send({ components: [container], flags: MessageFlags.IsComponentsV2 });
+            notifiedUsers.add(userId);
+          }
+        } catch (error) {
+          console.warn(`[Handler] Could not notify user ${userId}:`, error.message);
+        }
       }
     }
   } catch (error) {
