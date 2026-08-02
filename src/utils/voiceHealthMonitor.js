@@ -258,11 +258,8 @@ class VoiceHealthMonitor {
 
     async updateVoiceState(player, track) {
         try {
-            await this.client.rest
-                .put(`/channels/${player.voiceId}/voice-status`, {
-                    body: { status: `${this.client.emoji?.dance || '🎵'} Playing **${track.title}**` },
-                })
-                .catch(() => null);
+            const { syncVoiceChannelStatus } = require('./voiceChannelStatus');
+            await syncVoiceChannelStatus(this.client, player, { track });
         } catch (error) {
         }
     }

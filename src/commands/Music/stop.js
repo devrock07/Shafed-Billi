@@ -76,6 +76,8 @@ module.exports = {
     player.paused = false;
     await player.skip();
     await Wait(500);
+    const { syncVoiceChannelStatus } = require("../../utils/voiceChannelStatus");
+    await syncVoiceChannelStatus(client, player, { state: "idle" });
 
     const successDisplay = new TextDisplayBuilder()
       .setContent(`**${client.emoji.check} Stopped the music**`);

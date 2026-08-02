@@ -15,17 +15,20 @@ const MusicBot = require("./src/structures/MusicClient");
 const initializeCleanup = require("./src/events/Client/PremiumChecks");
 const Dokdo = require("dokdo");
 const Logger = require("./src/utils/logger");
+const config = require("./src/config");
 
 const client = new MusicBot();
 module.exports = client;
 
 client.connect();
 
-client.Jsk = new Dokdo.Client(client, {
-  aliases: ["dokdo", "dok", "jsk"],
-  prefix: ['..'],
-  owners: ['399625333617197057'],
-});
+if (config.ownerID.length) {
+  client.Jsk = new Dokdo.Client(client, {
+    aliases: ["dokdo", "dok", "jsk"],
+    prefix: [".."],
+    owners: config.ownerID,
+  });
+}
 
 process.env.SHELL = process.platform === "win32" ? "powershell" : "bash";
 
@@ -33,7 +36,7 @@ const emojis = require("./src/emojis");
 client.emoji = emojis;
 
 client.on("messageCreate", (message) => {
-  client.Jsk.run(message);
+  client.Jsk?.run(message);
 });
 
 // Improved Error Handling with Logger

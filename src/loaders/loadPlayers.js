@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { safeEventHandler } = require("../utils/safeEvent");
 
 module.exports = (client) => {
   const playersPath = path.join(__dirname, "../events/Players");
@@ -8,7 +9,8 @@ module.exports = (client) => {
   if (fs.existsSync(playersPath)) {
     fs.readdirSync(playersPath).forEach((file) => {
       const event = require(path.join(playersPath, file));
-      client.manager.on(event.name, (...args) => event.run(client, ...args));
+      const register = event.once ? "once" : "on";
+      client.manager[register](event.name, safeEventHandler(client, "Player", event));
       totalEvents++;
     });
   }

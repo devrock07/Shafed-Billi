@@ -1,68 +1,78 @@
-# 🐈 SHAFED BILLI - Premium Music System
+# Shafed Billi
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/devrock07/Shafed-Billi/refs/heads/main/help-banner.webp" alt="Shafed Billi Banner" width="800">
-  <br>
-  <strong>Experience High-Fidelity Music on Discord with Style</strong>
-  <br><br>
-  <p>
-    <a href="https://discord.gg/vJmURHxbTg"><img src="https://img.shields.io/discord/1464202440940195978?color=FF1493&label=Support&logo=discord&logoColor=white&style=for-the-badge" alt="Support"></a>
-    <a href="https://github.com/devrock07/Shafed-Billi"><img src="https://img.shields.io/github/stars/devrock07/Shafed-Billi?color=FF1493&logo=github&style=for-the-badge" alt="Stars"></a>
-    <img src="https://img.shields.io/badge/Developed%20By-DEVROCK-FF1493?style=for-the-badge" alt="Developer">
-  </p>
+  <img src="help-banner-neutral.png" alt="Shafed Billi command center" width="800">
+  <p><strong>A component-first Discord music bot powered by Lavalink.</strong></p>
 </div>
 
----
+Shafed Billi combines high-quality playback with an interactive Discord Components V2 interface. It supports prefix and slash commands, multiple music sources, favourites, filters, queue controls, per-server configuration, and automatic voice-connection recovery.
 
-## 🌟 Overview
+## Highlights
 
-**Shafed Billi** is a high-performance, feature-rich Discord music bot designed for a premium user experience. Built with the latest **Discord.js V14** and **Components V2**, it offers a "sexy" minimalist UI, advanced audio filters, and seamless playback.
+- Clean now-playing cards with artwork, live progress, pause, skip, stop, loop, and autoplay controls
+- Automatic voice-channel status showing the current track and playback mode
+- Fast interactive help browser with category navigation and command autocomplete
+- YouTube, YouTube Music, Spotify, Apple Music, Deezer, and JioSaavn search support (subject to your Lavalink plugins)
+- Liked songs, history, search, queue management, and audio filters
+- MongoDB-backed server settings and user preferences
+- Cluster and shard support for larger deployments
+- Environment-based secrets with startup validation
 
-## 🚀 Key Features
+## Requirements
 
-- 🎵 **High-Fidelity Audio**: Crystal clear music streaming via Lavalink.
-- ✨ **Sexy UI (V2 Components)**: Modern "Now Playing" and "Help" menus with dynamic banners, glassmorphism effects, and tech grids.
-- 🎨 **Pink & Black Theme**: A unique, vibrant aesthetic designed by **DEVROCK**.
-- 🛠️ **Advanced Controls**: Loop, Autoplay, Skip, Pause/Resume, and more directly from buttons.
-- 📂 **Multi-Source Support**: YouTube, Spotify, SoundCloud, and others.
-- ⚡ **Lightning Fast**: Optimized for speed and minimal latency.
+- Node.js 20.18.1 or newer
+- A Discord bot application with the Server Members, Presence, and Message Content privileged intents enabled
+- The bot's `Set Voice Channel Status` permission for automatic playback status text
+- MongoDB
+- Lavalink v4 with the source plugins you want to support
+- Spotify application credentials if Spotify search is enabled
 
-## 🛠️ Installation
+## Setup
 
-### Prerequisites
-- [Node.js](https://nodejs.org/) v16.11.0 or higher.
-- [Lavalink Node](https://github.com/lavalink-devs/Lavalink) (or a public node).
-- [MongoDB](https://www.mongodb.com/) account for database.
+```bash
+git clone https://github.com/devrock07/Shafed-Billi.git
+cd Shafed-Billi
+npm install
+```
 
-### Setup
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/devrock07/Shafed-Billi.git
-   cd Shafed-Billi
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Configure `src/config.js`:
-   - Add your **Bot Token**.
-   - Add your **MongoDB URL**.
-   - Configure your **Lavalink Nodes**.
-4. Start the bot:
-   ```bash
-   node .
-   ```
+Copy `.env.example` to `.env`, then add at least:
 
-## 📜 Credits & License
+```dotenv
+BOT_TOKEN=your_discord_bot_token
+OWNER_IDS=your_discord_user_id
+MONGODB_URL=mongodb://127.0.0.1:27017/shafed-billi
+LAVALINK_URL=localhost:2333
+LAVALINK_PASSWORD=youshallnotpass
+```
 
-**Developed with ❤️ by DEVROCK.**
+Start the bot:
 
-This project is licensed under a **Custom Credit Protection License**.
-- You are **PROHIBITED** from removing or altering the "Developed by DEVROCK" credits in any menu, banner, or command.
-- Commercial use is restricted unless explicit permission is granted by the developer.
+```bash
+npm start
+```
 
----
+The process now reports missing required environment variables clearly instead of failing later with an unclear login or database error.
 
-<div align="center">
-  <p>© 2026 SHAFED BILLI PROJECT • Created by DEVROCK</p>
-</div>
+## Quality checks
+
+```bash
+npm run check
+npm test
+```
+
+`npm run check` validates every JavaScript file. The test suite covers shared presentation helpers used by the player UI.
+
+## Project layout
+
+- `src/commands` — prefix and slash commands grouped by feature
+- `src/events` — Discord, Lavalink node, and player events
+- `src/loaders` — command, event, node, and player registration
+- `src/schema` — Mongoose models
+- `src/structures` — the main Discord music client
+- `src/utils` — UI, player-card, formatting, logging, and voice-health helpers
+
+See [STRUCTURE.md](STRUCTURE.md) for a deeper architecture overview.
+
+## License and credits
+
+Developed by **DEVROCK**. This project uses the custom terms in [LICENSE.md](LICENSE.md); retain the required author credit when redistributing or modifying the project.

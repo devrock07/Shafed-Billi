@@ -100,7 +100,7 @@ class Logger {
   }
 
   static cmd(message) {
-    this._print("CMD", "( ⋆ ＾ － ＾ ⋆ )", this.style.magenta, message);
+    this._print("CMD", "( ⋆ ＾ － ＾ ⋆ )", this.style.cyan, message);
   }
 
   static event(message) {

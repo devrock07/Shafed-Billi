@@ -7,6 +7,13 @@ const config = require("./src/config");
 const { ClusterManager } = require("discord-hybrid-sharding");
 const Logger = require("./src/utils/logger");
 
+try {
+  config.validate();
+} catch (error) {
+  Logger.log(error.message, "error");
+  process.exit(1);
+}
+
 const manager = new ClusterManager("./index.js", {
   totalShards: "auto",
   shardsPerCluster: 1,
@@ -23,7 +30,6 @@ manager.on("clusterCreate", (cluster) => {
   Logger.system(`Started Cluster #${cluster.id}`);
 });
 
-console.clear();
 // Shafed Billi (White Cat) Banner
 console.log(`\x1b[36m
    /\\_/\\  

@@ -3,12 +3,14 @@ const {
   InteractionType,
   PermissionFlagsBits,
   PermissionsBitField,
+  EmbedBuilder,
   ContainerBuilder,
   TextDisplayBuilder,
   MessageFlags,
 } = require("discord.js");
 const db = require("../../schema/prefix.js");
 const db3 = require("../../schema/setup");
+const { sendWebhook } = require("../../utils/webhooks");
 
 module.exports = {
   name: "interactionCreate",
@@ -230,9 +232,6 @@ module.exports = {
         }
 
         if (client.config.Webhooks?.cmdrun) {
-          const { WebhookClient, EmbedBuilder } = require("discord.js");
-          const web = new WebhookClient({ url: client.config.Webhooks.cmdrun });
-
           const getCommandString = () => {
             let cmdString = `/${interaction.commandName}`;
             if (interaction.options) {
@@ -265,7 +264,7 @@ module.exports = {
               `**${client.emoji.dot} Content:** \`${getCommandString()}\``
             );
 
-          web.send({ embeds: [commandlog] }).catch(console.error);
+          await sendWebhook(client, "cmdrun", { embeds: [commandlog] });
         }
 
       } catch (error) {
