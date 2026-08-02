@@ -1,4 +1,4 @@
-# 🐈 SHAFED BILLI - Premium Music System
+# 🐈 SHAFED BILLI - Premium Music System.
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/devrock07/Shafed-Billi/refs/heads/main/help-banner.webp" alt="Shafed Billi Banner" width="800">
