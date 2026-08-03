@@ -1,8 +1,10 @@
+const emoji = require("../emojis");
+
 module.exports = {
   progressbar: function (player) {
     const size = 15;
     const line = "▬";
-    const slider = "<:dot:1201841280577970176>";
+    const slider = emoji.dot;
 
     if (!player.queue.current) return `[ ${slider}${line.repeat(size - 1)} ]`;
     const current =

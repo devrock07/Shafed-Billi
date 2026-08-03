@@ -1,155 +1,45 @@
-const {
-    ContainerBuilder,
-    TextDisplayBuilder,
-    MessageFlags
-} = require("discord.js");
-const emoji = require("../../emojis");
+const { MessageFlags } = require("discord.js");
+const { container, text } = require("../../utils/ui");
+const { playPreviousTrack } = require("../../utils/previousTrack");
 
 module.exports = {
-    name: "previous",
-    aliases: ["back", "prev"],
-    category: "Music",
-    cooldown: 3,
-    description: "Play the previous song from history",
-    args: false,
-    usage: "",
-    userPrams: [],
-    botPrams: ["EMBED_LINKS"],
-    owner: false,
-    player: true,
-    inVoiceChannel: true,
-    sameVoiceChannel: true,
-    slashOptions: [],
+  name: "previous",
+  aliases: ["back", "prev", "rewind"],
+  category: "Music",
+  cooldown: 3,
+  description: "Play the previous song from history",
+  player: true,
+  inVoiceChannel: true,
+  sameVoiceChannel: true,
+  slashOptions: [],
 
-    async slashExecute(interaction, client) {
-        const interactionWrapper = {
-            guild: interaction.guild,
-            channel: interaction.channel,
-            author: interaction.user,
-            member: interaction.member,
-            createdTimestamp: interaction.createdTimestamp,
-            reply: async (options) => {
-                if (interaction.deferred) {
-                    return await interaction.editReply(options);
-                } else if (interaction.replied) {
-                    return await interaction.followUp(options);
-                } else {
-                    return await interaction.reply(options);
-                }
-            },
-        };
+  async slashExecute(interaction, client) {
+    const wrapper = {
+      guild: interaction.guild,
+      author: interaction.user,
+      reply: (options) => interaction.reply(options),
+    };
+    return this.execute(wrapper, [], client);
+  },
 
-        const args = [];
-        if (interaction.options) {
-            const options = interaction.options.data;
-            for (const option of options) {
-                if (option.value !== undefined) {
-                    args.push(option.value.toString());
-                }
-            }
-        }
-
-        const prefix = client.prefix;
-        return this.execute(interactionWrapper, args, client, prefix);
-    },
-
-    async execute(message, args, client, prefix) {
-        const player = client.manager.players.get(message.guild.id);
-
-        let history = player.data.get("history") || [];
-
-        if (history.length === 0) {
-            const infoDisplay = new TextDisplayBuilder()
-                .setContent(`**${client.emoji.info} No previous songs in history.**`);
-
-            const container = new ContainerBuilder()
-                .addTextDisplayComponents(infoDisplay);
-
-            return message.reply({
-                components: [container],
-                flags: MessageFlags.IsComponentsV2
-            }).catch(() =>
-                message.channel.send({
-                    components: [container],
-                    flags: MessageFlags.IsComponentsV2
-                })
-            );
-        }
-
-        try {
-            const previousTrackData = history[history.length - 1];
-
-            const searchResult = await player.search(previousTrackData.uri || previousTrackData.title, {
-                requester: message.author
-            });
-
-            if (!searchResult || !searchResult.tracks || searchResult.tracks.length === 0) {
-                const errorDisplay = new TextDisplayBuilder()
-                    .setContent(`**${client.emoji.cross} Could not find the previous track.**`);
-
-                const container = new ContainerBuilder()
-                    .addTextDisplayComponents(errorDisplay);
-
-                return message.reply({
-                    components: [container],
-                    flags: MessageFlags.IsComponentsV2
-                }).catch(() =>
-                    message.channel.send({
-                        components: [container],
-                        flags: MessageFlags.IsComponentsV2
-                    })
-                );
-            }
-
-            const previousTrack = searchResult.tracks[0];
-
-            history.pop();
-            player.data.set("history", history);
-
-            if (player.queue.current) {
-                player.queue.unshift(player.queue.current);
-            }
-
-            player.queue.unshift(previousTrack);
-
-            player.data.set("autoplayAdded", false);
-
-            await player.skip();
-
-            const successDisplay = new TextDisplayBuilder()
-                .setContent(`**${client.emoji.check} Playing previous song: [${previousTrack.title}](${previousTrack.uri})**`);
-
-            const container = new ContainerBuilder()
-                .addTextDisplayComponents(successDisplay);
-
-            return message.reply({
-                components: [container],
-                flags: MessageFlags.IsComponentsV2
-            }).catch(() =>
-                message.channel.send({
-                    components: [container],
-                    flags: MessageFlags.IsComponentsV2
-                })
-            );
-        } catch (error) {
-            console.error("Error playing previous track:", error);
-
-            const errorDisplay = new TextDisplayBuilder()
-                .setContent(`**${client.emoji.cross} Failed to play previous track.**`);
-
-            const container = new ContainerBuilder()
-                .addTextDisplayComponents(errorDisplay);
-
-            return message.reply({
-                components: [container],
-                flags: MessageFlags.IsComponentsV2
-            }).catch(() =>
-                message.channel.send({
-                    components: [container],
-                    flags: MessageFlags.IsComponentsV2
-                })
-            );
-        }
-    },
+  async execute(message, _args, client) {
+    const player = client.manager.players.get(message.guild.id);
+    try {
+      const track = await playPreviousTrack(player, message.author);
+      return message.reply({
+        components: [container().addTextDisplayComponents(
+          text(`### ${client.emoji.check} Previous track\n[${track.title}](${track.uri}) is now playing.`),
+        )],
+        flags: MessageFlags.IsComponentsV2,
+      });
+    } catch (error) {
+      const known = error.code === "NO_HISTORY" || error.code === "NOT_FOUND";
+      return message.reply({
+        components: [container().addTextDisplayComponents(
+          text(`### ${known ? client.emoji.info : client.emoji.cross} Previous track unavailable\n${known ? error.message : "The track could not be restored. Please try again."}`),
+        )],
+        flags: MessageFlags.IsComponentsV2,
+      });
+    }
+  },
 };
-

@@ -3,9 +3,16 @@ const assert = require("node:assert/strict");
 const { createPlayerCard } = require("../src/utils/playerCard");
 const playerCreate = require("../src/events/Players/playerCreate");
 const queueUpdate = require("../src/events/Players/queueUpdate");
+const emoji = require("../src/emojis");
+const { applyApplicationEmojis, uniqueDefinitions } = require("../src/utils/applicationEmojis");
+
+applyApplicationEmojis(new Map(uniqueDefinitions.map((definition, index) => [
+  String(10_000_000_000_000_000n + BigInt(index)),
+  { id: String(10_000_000_000_000_000n + BigInt(index)), name: definition.name, animated: false },
+])));
 
 const client = {
-  emoji: require("../src/emojis"),
+  emoji,
   logger: { log() {} },
 };
 
@@ -31,10 +38,13 @@ function player(edit) {
 test("player card is compact, timer-free, and uses application emojis", () => {
   const json = createPlayerCard(client, player(async () => {}), track, { controls: true }).toJSON();
   const serialized = JSON.stringify(json);
-  const buttons = json.components.at(-1).components;
+  const rows = json.components.filter((component) => component.type === 1);
+  const buttons = rows.flatMap((row) => row.components);
 
   assert.doesNotMatch(serialized, /00:00|03:47|━|─/);
-  assert.equal(buttons.length, 5);
+  assert.equal(rows.length, 2);
+  assert.equal(buttons.length, 6);
+  assert.ok(buttons.some((button) => button.custom_id === "previous"));
   assert.ok(buttons.every((button) => button.emoji?.id));
 });
 

@@ -9,7 +9,8 @@ Shafed Billi combines high-quality playback with an interactive Discord Componen
 
 ## Highlights
 
-- Clean now-playing cards with artwork, live progress, pause, skip, stop, loop, and autoplay controls
+- Clean now-playing cards with artwork, previous, pause, skip, stop, loop, and autoplay controls
+- Automatic application-emoji sync with portable IDs for self-hosted bot tokens
 - Automatic voice-channel status showing the current track and playback mode
 - Fast interactive help browser with category navigation and command autocomplete
 - YouTube, YouTube Music, Spotify, Apple Music, Deezer, and JioSaavn search support (subject to your Lavalink plugins)
@@ -51,7 +52,9 @@ Start the bot:
 npm start
 ```
 
-The process now reports missing required environment variables clearly instead of failing later with an unclear login or database error.
+On first startup, the bot checks `assets/emojis`, uploads any missing `sb_*` application emojis, and maps the returned IDs in memory. Self-hosters never need to copy emoji IDs into the source. In clustered deployments, cluster `0` uploads while the other clusters wait and fetch the completed set.
+
+The process also reports missing required environment variables clearly instead of failing later with an unclear login or database error.
 
 ## Quality checks
 
@@ -69,7 +72,8 @@ npm test
 - `src/loaders` — command, event, node, and player registration
 - `src/schema` — Mongoose models
 - `src/structures` — the main Discord music client
-- `src/utils` — UI, player-card, formatting, logging, and voice-health helpers
+- `src/utils` — UI, player-card, emoji sync, formatting, logging, and voice-health helpers
+- `assets/emojis` — portable transparent PNGs uploaded to each Discord application
 
 See [STRUCTURE.md](STRUCTURE.md) for a deeper architecture overview.
 

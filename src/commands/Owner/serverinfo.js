@@ -109,7 +109,7 @@ module.exports = {
 
             const player = client.manager?.players?.get(guild.id);
             const playerStatus = player
-                ? `\`Active\` (${player.playing ? '▶️ Playing' : player.paused ? '⏸️ Paused' : '⏹️ Idle'})`
+                ? `\`Active\` (${player.playing ? `${client.emoji.play} Playing` : player.paused ? `${client.emoji.pause} Paused` : `${client.emoji.stop} Idle`})`
                 : '`Inactive`';
 
             const headerDisplay = new TextDisplayBuilder()
@@ -344,7 +344,7 @@ module.exports = {
 
             const player = client.manager?.players?.get(guild.id);
             const playerStatus = player
-                ? `\`Active\` (${player.playing ? '▶️ Playing' : player.paused ? '⏸️ Paused' : '⏹️ Idle'})`
+                ? `\`Active\` (${player.playing ? `${client.emoji.play} Playing` : player.paused ? `${client.emoji.pause} Paused` : `${client.emoji.stop} Idle`})`
                 : '`Inactive`';
 
             const headerDisplay = new TextDisplayBuilder()

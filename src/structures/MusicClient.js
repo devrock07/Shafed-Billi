@@ -43,6 +43,7 @@ class MusicBot extends Client {
     this.aliases = new Collection();
     this.logger = require("../utils/logger.js");
     this.emoji = require("../emojis.js");
+    this.emojiReady = Promise.resolve(this.emoji);
     this.cluster = new ClusterClient(this);
     if (!this.token) this.token = this.config.token;
     this.manager = null;

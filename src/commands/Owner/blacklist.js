@@ -54,7 +54,8 @@ module.exports = {
 
         const resetButton = new ButtonBuilder()
             .setCustomId('reset_branding')
-            .setLabel('🔄 Reset to Default')
+            .setLabel('Reset to Default')
+            .setEmoji(client.emoji.load)
             .setStyle(ButtonStyle.Secondary);
 
         const row = new ActionRowBuilder().addComponents(customizeButton, resetButton);
@@ -94,7 +95,7 @@ module.exports = {
         collector.on('collect', async (interaction) => {
             if (interaction.user.id !== message.author.id) {
                 const errorDisplay = new TextDisplayBuilder()
-                    .setContent(`${client.emoji?.cross || '❌'} Only ${message.author.username} can use this!`);
+                    .setContent(`${client.emoji.cross} Only ${message.author.username} can use this!`);
 
                 const errorContainer = new ContainerBuilder()
                     .addTextDisplayComponents(errorDisplay);
@@ -163,7 +164,7 @@ module.exports = {
 
                     if (!avatarUrl && !bannerUrl && !bio && !nickname) {
                         const errorDisplay = new TextDisplayBuilder()
-                            .setContent(`${client.emoji?.cross || '❌'} Please fill at least one field!`);
+                            .setContent(`${client.emoji.cross} Please fill at least one field!`);
 
                         const errorContainer = new ContainerBuilder()
                             .addTextDisplayComponents(errorDisplay);
@@ -191,12 +192,14 @@ module.exports = {
 
                     const confirmButton = new ButtonBuilder()
                         .setCustomId('confirm_branding')
-                        .setLabel('✅ Confirm & Apply')
+                        .setLabel('Confirm & Apply')
+                        .setEmoji(client.emoji.check)
                         .setStyle(ButtonStyle.Success);
 
                     const cancelButton = new ButtonBuilder()
                         .setCustomId('cancel_branding')
-                        .setLabel('❌ Cancel')
+                        .setLabel('Cancel')
+                        .setEmoji(client.emoji.cross)
                         .setStyle(ButtonStyle.Danger);
 
                     const actionRow = new ActionRowBuilder().addComponents(confirmButton, cancelButton);
@@ -235,7 +238,7 @@ module.exports = {
 
                                 if (modalData.nickname) {
                                     await botMember.setNickname(modalData.nickname);
-                                    successText += `${client.emoji?.check || '✅'} Nickname set to: **${modalData.nickname}**\n`;
+                                    successText += `${client.emoji.check} Nickname set to: **${modalData.nickname}**\n`;
                                 }
 
                                 if (modalData.avatarUrl || modalData.bannerUrl || modalData.bio) {
@@ -265,17 +268,17 @@ module.exports = {
                                             { body: patchData }
                                         );
 
-                                        if (modalData.avatarUrl) successText += `${client.emoji?.check || '✅'} Avatar updated\n`;
-                                        if (modalData.bannerUrl) successText += `${client.emoji?.check || '✅'} Banner updated\n`;
-                                        if (modalData.bio) successText += `${client.emoji?.check || '✅'} Bio updated\n`;
+                                        if (modalData.avatarUrl) successText += `${client.emoji.check} Avatar updated\n`;
+                                        if (modalData.bannerUrl) successText += `${client.emoji.check} Banner updated\n`;
+                                        if (modalData.bio) successText += `${client.emoji.check} Bio updated\n`;
                                     } catch (apiError) {
                                         console.error('API Error:', apiError);
-                                        successText += `${client.emoji?.warn || '⚠️'} Could not update avatar/banner/bio: ${apiError.message}\n`;
+                                        successText += `${client.emoji.warn} Could not update avatar/banner/bio: ${apiError.message}\n`;
                                     }
                                 }
 
                                 const successHeader = new TextDisplayBuilder()
-                                    .setContent(`### ${client.emoji?.check || '✅'} Success!`);
+                                    .setContent(`### ${client.emoji.check} Success!`);
 
                                 const successSeparator = new SeparatorBuilder();
 
@@ -300,7 +303,7 @@ module.exports = {
                                 console.error('Branding error:', error);
 
                                 const errorHeader = new TextDisplayBuilder()
-                                    .setContent(`### ${client.emoji?.cross || '❌'} Error`);
+                                    .setContent(`### ${client.emoji.cross} Error`);
 
                                 const errorSeparator = new SeparatorBuilder();
 
@@ -320,7 +323,7 @@ module.exports = {
                             }
                         } else if (btnInteraction.customId === 'cancel_branding') {
                             const cancelHeader = new TextDisplayBuilder()
-                                .setContent(`### ${client.emoji?.cross || '❌'} Cancelled`);
+                                .setContent(`### ${client.emoji.cross} Cancelled`);
 
                             const cancelSeparator = new SeparatorBuilder();
 
@@ -354,7 +357,7 @@ module.exports = {
                     let resetText = '**Reset changes:**\n\n';
 
                     await botMember.setNickname(null);
-                    resetText += `${client.emoji?.check || '✅'} Nickname reset to default\n`;
+                    resetText += `${client.emoji.check} Nickname reset to default\n`;
 
                     try {
                         const { Routes } = require('discord.js');
@@ -369,16 +372,16 @@ module.exports = {
                                 }
                             }
                         );
-                        resetText += `${client.emoji?.check || '✅'} Avatar reset to default\n`;
-                        resetText += `${client.emoji?.check || '✅'} Banner reset to default\n`;
-                        resetText += `${client.emoji?.check || '✅'} Bio reset to default\n`;
+                        resetText += `${client.emoji.check} Avatar reset to default\n`;
+                        resetText += `${client.emoji.check} Banner reset to default\n`;
+                        resetText += `${client.emoji.check} Bio reset to default\n`;
                     } catch (err) {
                         console.error('Reset API Error:', err);
-                        resetText += `${client.emoji?.warn || '⚠️'} Could not reset avatar/banner/bio: ${err.message}\n`;
+                        resetText += `${client.emoji.warn} Could not reset avatar/banner/bio: ${err.message}\n`;
                     }
 
                     const resetHeader = new TextDisplayBuilder()
-                        .setContent(`### ${client.emoji?.check || '✅'} Reset Complete!`);
+                        .setContent(`### ${client.emoji.check} Reset Complete!`);
 
                     const resetSeparator = new SeparatorBuilder();
 
@@ -402,7 +405,7 @@ module.exports = {
                     console.error('Reset error:', error);
 
                     const errorHeader = new TextDisplayBuilder()
-                        .setContent(`### ${client.emoji?.cross || '❌'} Error`);
+                        .setContent(`### ${client.emoji.cross} Error`);
 
                     const errorSeparator = new SeparatorBuilder();
 

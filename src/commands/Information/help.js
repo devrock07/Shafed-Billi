@@ -12,12 +12,12 @@ const { isHttpUrl } = require("../../utils/webhooks");
 const emoji = require("../../emojis");
 
 const CATEGORY_INFO = Object.freeze({
-  Config: { emoji: emoji.config, description: "Server setup and preferences" },
-  Filters: { emoji: emoji.filters, description: "Audio effects and equalizer" },
-  Information: { emoji: emoji.info, description: "Bot status and useful links" },
-  Music: { emoji: emoji.music, description: "Playback and queue controls" },
-  Favourite: { emoji: emoji.favourite, description: "Your liked songs and playlists" },
-  Utility: { emoji: emoji.utility, description: "Member and server utilities" },
+  Config: { get emoji() { return emoji.config; }, description: "Server setup and preferences" },
+  Filters: { get emoji() { return emoji.filters; }, description: "Audio effects and equalizer" },
+  Information: { get emoji() { return emoji.info; }, description: "Bot status and useful links" },
+  Music: { get emoji() { return emoji.music; }, description: "Playback and queue controls" },
+  Favourite: { get emoji() { return emoji.favourite; }, description: "Your liked songs and playlists" },
+  Utility: { get emoji() { return emoji.utility; }, description: "Member and server utilities" },
 });
 
 function publicCommands(client) {

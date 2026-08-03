@@ -16,7 +16,12 @@ function requesterLine(track) {
 
 function controls(client, player, paused) {
   const loopMode = player.loop || "none";
-  return new ActionRowBuilder().addComponents(
+  const playback = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("previous")
+      .setEmoji(client.emoji.previous)
+      .setLabel("Previous")
+      .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
       .setCustomId("pause")
       .setEmoji(paused ? client.emoji.play : client.emoji.pause)
@@ -32,6 +37,9 @@ function controls(client, player, paused) {
       .setEmoji(client.emoji.stop)
       .setLabel("Stop")
       .setStyle(ButtonStyle.Danger),
+  );
+
+  const modes = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId("loop")
       .setEmoji(client.emoji.loop)
@@ -43,6 +51,7 @@ function controls(client, player, paused) {
       .setLabel("Autoplay")
       .setStyle(player.data?.get("autoplay") ? ButtonStyle.Success : ButtonStyle.Secondary),
   );
+  return [playback, modes];
 }
 
 function createPlayerCard(client, player, track, options = {}) {
@@ -68,7 +77,7 @@ function createPlayerCard(client, player, track, options = {}) {
     card.addTextDisplayComponents(heading, details);
   }
   if (options.controls) {
-    card.addSeparatorComponents(separator()).addActionRowComponents(controls(client, player, paused));
+    card.addSeparatorComponents(separator()).addActionRowComponents(...controls(client, player, paused));
   }
 
   return card;

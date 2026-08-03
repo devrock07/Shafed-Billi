@@ -29,11 +29,18 @@ module.exports = {
     if (!player || !track) return;
     if (!player.data) player.data = new Map();
     await syncVoiceChannelStatus(client, player, { track, state: "playing" });
+    const lastTrack = player.data.get("lastTrack");
+    const changed = lastTrack && (lastTrack.identifier || lastTrack.uri) !== (track.identifier || track.uri);
+    if (changed) {
+      const history = [...(player.data.get("history") || []), lastTrack].slice(-50);
+      player.data.set("history", history);
+    }
+    player.data.set("lastTrack", track);
+
     const channel = client.channels.cache.get(player.textId);
     if (!channel) return;
 
     try {
-      player.data.set("lastTrack", track);
       client.voiceHealthMonitor?.updateActivity(player.guildId);
 
       const previous = player.data.get("nowPlayingMessage");

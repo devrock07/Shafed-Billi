@@ -15,16 +15,16 @@ function durationLabel(milliseconds) {
   return milliseconds > 0 ? convertTime(milliseconds) : "LIVE";
 }
 
-function navigation(page, pageCount, disabled = false) {
+function navigation(client, page, pageCount, disabled = false) {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId("queue:first")
-      .setEmoji("⏮️")
+      .setEmoji(client.emoji.previous)
       .setStyle(ButtonStyle.Secondary)
       .setDisabled(disabled || page === 0),
     new ButtonBuilder()
       .setCustomId("queue:previous")
-      .setEmoji("◀️")
+      .setEmoji(client.emoji.previous)
       .setStyle(ButtonStyle.Secondary)
       .setDisabled(disabled || page === 0),
     new ButtonBuilder()
@@ -34,18 +34,18 @@ function navigation(page, pageCount, disabled = false) {
       .setDisabled(true),
     new ButtonBuilder()
       .setCustomId("queue:next")
-      .setEmoji("▶️")
+      .setEmoji(client.emoji.play)
       .setStyle(ButtonStyle.Secondary)
       .setDisabled(disabled || page >= pageCount - 1),
     new ButtonBuilder()
       .setCustomId("queue:last")
-      .setEmoji("⏭️")
+      .setEmoji(client.emoji.skip)
       .setStyle(ButtonStyle.Secondary)
       .setDisabled(disabled || page >= pageCount - 1),
   );
 }
 
-function queueCard(player, page, disabled = false) {
+function queueCard(client, player, page, disabled = false) {
   const current = player.queue.current;
   const upcoming = [...player.queue];
   const pageCount = Math.max(1, Math.ceil(upcoming.length / PAGE_SIZE));
@@ -73,7 +73,7 @@ function queueCard(player, page, disabled = false) {
     .addTextDisplayComponents(text(`**UP NEXT**\n${upcomingLines}`));
 
   if (pageCount > 1) {
-    card.addSeparatorComponents(separator()).addActionRowComponents(navigation(safePage, pageCount, disabled));
+    card.addSeparatorComponents(separator()).addActionRowComponents(navigation(client, safePage, pageCount, disabled));
   }
   return { card, page: safePage, pageCount };
 }
@@ -114,7 +114,7 @@ module.exports = {
     }
 
     let page = 0;
-    let view = queueCard(player, page);
+    let view = queueCard(client, player, page);
     const queueMessage = await message.reply({
       components: [view.card],
       flags: MessageFlags.IsComponentsV2,
@@ -140,13 +140,13 @@ module.exports = {
       if (interaction.customId === "queue:previous") page -= 1;
       if (interaction.customId === "queue:next") page += 1;
       if (interaction.customId === "queue:last") page = view.pageCount - 1;
-      view = queueCard(player, page);
+      view = queueCard(client, player, page);
       page = view.page;
       await interaction.update({ components: [view.card] });
     });
 
     collector.on("end", () => {
-      view = queueCard(player, page, true);
+      view = queueCard(client, player, page, true);
       queueMessage.edit({ components: [view.card] }).catch(() => {});
     });
     return queueMessage;

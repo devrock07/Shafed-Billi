@@ -18,6 +18,7 @@ module.exports = {
   once: false,
   run: async (client, message) => {
     if (message.author.bot || !message.guild) return;
+    await client.emojiReady?.catch(() => {});
 
     const isIgnored = await IgnoreChannelModel.findOne({
       guildId: message.guild.id,

@@ -23,7 +23,7 @@ module.exports = {
 
         if (emojis.size === 0) {
             const errorDisplay = new TextDisplayBuilder()
-                .setContent(`${client.emoji?.cross || '❌'} **No emojis found!**\n\nThis server has no custom emojis.`);
+                .setContent(`${client.emoji.cross} **No emojis found!**\n\nThis server has no custom emojis.`);
 
             const container = new ContainerBuilder()
                 .addTextDisplayComponents(errorDisplay);
@@ -53,7 +53,7 @@ module.exports = {
 
         // Send the response
         const header = new TextDisplayBuilder()
-            .setContent(`### ${client.emoji?.check || '✅'} Emoji Configuration Generated\n-# ${guild.name}`);
+            .setContent(`### ${client.emoji.check} Emoji Configuration Generated\n-# ${guild.name}`);
 
         const separator = new SeparatorBuilder();
 
@@ -64,7 +64,7 @@ module.exports = {
                 `**Animated:** ${emojis.filter(e => e.animated).size}\n` +
                 `**Static:** ${emojis.filter(e => !e.animated).size}\n\n` +
                 `**File:** \`emojis.js\` attached below\n\n` +
-                `Copy the content and replace your \`src/emojis.js\` file.`
+                `Exported for reference. Built-in application emojis are synchronized automatically.`
             );
 
         const container = new ContainerBuilder()

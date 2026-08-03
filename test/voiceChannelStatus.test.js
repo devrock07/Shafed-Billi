@@ -5,6 +5,12 @@ const {
   setVoiceChannelStatus,
 } = require("../src/utils/voiceChannelStatus");
 const emoji = require("../src/emojis");
+const { applyApplicationEmojis, uniqueDefinitions } = require("../src/utils/applicationEmojis");
+
+applyApplicationEmojis(new Map(uniqueDefinitions.map((definition, index) => [
+  String(10_000_000_000_000_000n + BigInt(index)),
+  { id: String(10_000_000_000_000_000n + BigInt(index)), name: definition.name, animated: false },
+])));
 
 function player(overrides = {}) {
   return {
