@@ -1,11 +1,7 @@
 
 
 const { Client, GatewayIntentBits, Collection } = require("discord.js");
-const { Kazagumo, Plugins } = require("kazagumo");
 const mongoose = require("mongoose");
-const { readdirSync, existsSync } = require("fs");
-const { Connectors } = require("shoukaku");
-const Spotify = require("kazagumo-spotify");
 const { ClusterClient, getInfo } = require("discord-hybrid-sharding");
 const loadPlayerManager = require("../loaders/loadPlayerManager");
 const permissionHandler = require("../events/Client/PremiumChecks");
@@ -14,12 +10,19 @@ const VoiceHealthMonitor = require("../utils/voiceHealthMonitor");
 class MusicBot extends Client {
   constructor() {
     super({
-      intents: 33779,
+      intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildPresences,
+        GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.MessageContent,
+      ],
       properties: {
         browser: "Discord Android",
       },
       allowedMentions: {
-        parse: ["roles", "users", "everyone"],
+        parse: ["users"],
         repliedUser: false,
       },
       shards: getInfo().SHARD_LIST,
@@ -29,6 +32,7 @@ class MusicBot extends Client {
     this.commands = new Collection();
     this.slashCommands = new Collection();
     this.config = require("../config.js");
+    this.config.validate();
     this.owners = this.config.ownerID;
     this.prefix = this.config.prefix;
     this.color = this.config.color;
@@ -39,6 +43,7 @@ class MusicBot extends Client {
     this.aliases = new Collection();
     this.logger = require("../utils/logger.js");
     this.emoji = require("../emojis.js");
+    this.emojiReady = Promise.resolve(this.emoji);
     this.cluster = new ClusterClient(this);
     if (!this.token) this.token = this.config.token;
     this.manager = null;
@@ -46,14 +51,17 @@ class MusicBot extends Client {
     this.cooldowns = new Collection();
     this.voiceHealthMonitor = new VoiceHealthMonitor(this);
 
-    // [DEBUG] Monitor raw voice updates to verify Discord connectivity
-    this.on("raw", (packet) => {
-      if (["VOICE_SERVER_UPDATE", "VOICE_STATE_UPDATE"].includes(packet.t)) {
-        console.log(`[RAW DEBUG] Discord ${packet.t} received:`, JSON.stringify(packet.d, null, 2));
-      }
-    });
+    if (process.env.DEBUG_VOICE === "true") {
+      this.on("raw", (packet) => {
+        if (["VOICE_SERVER_UPDATE", "VOICE_STATE_UPDATE"].includes(packet.t)) {
+          this.logger.log(`[Voice debug] ${packet.t} for guild ${packet.d?.guild_id || "unknown"}`, "debug");
+        }
+      });
+    }
 
-    this._connectMongodb();
+    this._connectMongodb().catch((error) => {
+      this.logger.log(`[DB] Initial connection failed: ${error.message}`, "error");
+    });
     permissionHandler(this);
     loadPlayerManager(this);
     [
@@ -75,14 +83,14 @@ class MusicBot extends Client {
     };
 
     mongoose.set("strictQuery", false);
-    mongoose.connect(this.config.mongourl, dbOptions);
+    await mongoose.connect(this.config.mongourl, dbOptions);
     mongoose.Promise = global.Promise;
 
     mongoose.connection.on("connected", () => {
       this.logger.log("[DB] Database connected", "ready");
     });
 
-    mongoose.connection.on("err", (err) => {
+    mongoose.connection.on("error", (err) => {
       this.logger.log(`[DB] Mongoose connection error: ${err.stack}`, "error");
     });
 

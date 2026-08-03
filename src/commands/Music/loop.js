@@ -7,6 +7,7 @@ const {
     ButtonStyle,
     MessageFlags
 } = require("discord.js");
+const { syncVoiceChannelStatus } = require("../../utils/voiceChannelStatus");
 
 module.exports = {
     name: "loop",
@@ -163,6 +164,7 @@ module.exports = {
             const action = args[0].toLowerCase();
             if (action === "disable" || action === "off") {
                 player.setLoop("none");
+                await syncVoiceChannelStatus(client, player);
                 return message.reply({
                     components: [createFinalContainer("none")],
                     flags: MessageFlags.IsComponentsV2
@@ -171,6 +173,7 @@ module.exports = {
                 const mode = args[1]?.toLowerCase();
                 if (mode === "track" || mode === "queue") {
                     player.setLoop(mode);
+                    await syncVoiceChannelStatus(client, player);
                     return message.reply({
                         components: [createFinalContainer(mode)],
                         flags: MessageFlags.IsComponentsV2
@@ -210,14 +213,17 @@ module.exports = {
                     await interaction.update({ components: [createStep1Container()] });
                 } else if (interaction.customId === 'loop_off') {
                     player.setLoop('none');
+                    await syncVoiceChannelStatus(client, player);
                     await interaction.update({ components: [createFinalContainer('none')] });
                     collector.stop();
                 } else if (interaction.customId === 'loop_track') {
                     player.setLoop('track');
+                    await syncVoiceChannelStatus(client, player);
                     await interaction.update({ components: [createFinalContainer('track')] });
                     collector.stop();
                 } else if (interaction.customId === 'loop_queue') {
                     player.setLoop('queue');
+                    await syncVoiceChannelStatus(client, player);
                     await interaction.update({ components: [createFinalContainer('queue')] });
                     collector.stop();
                 }

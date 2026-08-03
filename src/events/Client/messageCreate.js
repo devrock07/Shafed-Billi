@@ -1,6 +1,5 @@
 ﻿const {
   PermissionsBitField,
-  WebhookClient,
   EmbedBuilder,
   ContainerBuilder,
   TextDisplayBuilder,
@@ -11,6 +10,7 @@ const PrefixSchema = require("../../schema/prefix.js");
 const BlacklistSchema = require("../../schema/blacklist");
 const IgnoreChannelModel = require("../../schema/ignorechannel");
 const NoPrefixSchema = require("../../schema/noprefix");
+const { sendWebhook } = require("../../utils/webhooks");
 const cooldowns = new Map();
 
 module.exports = {
@@ -18,6 +18,7 @@ module.exports = {
   once: false,
   run: async (client, message) => {
     if (message.author.bot || !message.guild) return;
+    await client.emojiReady?.catch(() => {});
 
     const isIgnored = await IgnoreChannelModel.findOne({
       guildId: message.guild.id,
@@ -250,8 +251,6 @@ module.exports = {
       await command.execute(message, args, client, prefix);
 
       if (client.config.Webhooks?.cmdrun) {
-        const web = new WebhookClient({ url: client.config.Webhooks.cmdrun });
-
         const commandlog = new EmbedBuilder()
           .setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
           .setColor(client.color)
@@ -265,7 +264,7 @@ module.exports = {
             `**${client.emoji.dot} Content:** \`${message.content}\``
           );
 
-        web.send({ embeds: [commandlog] }).catch((e) => client.logger.log(e, "error"));
+        await sendWebhook(client, "cmdrun", { embeds: [commandlog] });
       }
     } catch (error) {
       client.logger.log(`Error executing command ${command.name}: ${error.stack}`, "error");

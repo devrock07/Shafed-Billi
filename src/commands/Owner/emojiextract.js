@@ -21,7 +21,7 @@ module.exports = {
 
         if (!targetServerId || !/^\d{17,19}$/.test(targetServerId)) {
             const errorDisplay = new TextDisplayBuilder()
-                .setContent(`${client.emoji?.cross || '❌'} **Invalid server ID!**\n\nUsage: \`!emojiextract <server_id>\``);
+                .setContent(`${client.emoji.cross} **Invalid server ID!**\n\nUsage: \`!emojiextract <server_id>\``);
 
             const container = new ContainerBuilder()
                 .addTextDisplayComponents(errorDisplay);
@@ -36,7 +36,7 @@ module.exports = {
         const targetGuild = client.guilds.cache.get(targetServerId);
         if (!targetGuild) {
             const errorDisplay = new TextDisplayBuilder()
-                .setContent(`${client.emoji?.cross || '❌'} **Server not found!**\n\nI'm not in a server with ID: \`${targetServerId}\`\n\nMake sure the bot is in both servers.`);
+                .setContent(`${client.emoji.cross} **Server not found!**\n\nI'm not in a server with ID: \`${targetServerId}\`\n\nMake sure the bot is in both servers.`);
 
             const container = new ContainerBuilder()
                 .addTextDisplayComponents(errorDisplay);
@@ -51,7 +51,7 @@ module.exports = {
         const targetEmojis = targetGuild.emojis.cache;
         if (targetEmojis.size === 0) {
             const errorDisplay = new TextDisplayBuilder()
-                .setContent(`${client.emoji?.warn || '⚠️'} **No emojis found!**\n\nThe server **${targetGuild.name}** has no custom emojis.`);
+                .setContent(`${client.emoji.warn} **No emojis found!**\n\nThe server **${targetGuild.name}** has no custom emojis.`);
 
             const container = new ContainerBuilder()
                 .addTextDisplayComponents(errorDisplay);
@@ -70,7 +70,7 @@ module.exports = {
 
         if (availableSlots <= 0) {
             const errorDisplay = new TextDisplayBuilder()
-                .setContent(`${client.emoji?.cross || '❌'} **No emoji slots available!**\n\nCurrent server has **${currentEmojis.size}/${maxEmojis}** emojis.\nDelete some emojis first.`);
+                .setContent(`${client.emoji.cross} **No emoji slots available!**\n\nCurrent server has **${currentEmojis.size}/${maxEmojis}** emojis.\nDelete some emojis first.`);
 
             const container = new ContainerBuilder()
                 .addTextDisplayComponents(errorDisplay);
@@ -83,7 +83,7 @@ module.exports = {
 
         // Send initial message
         const header = new TextDisplayBuilder()
-            .setContent(`### ${client.emoji?.info || 'ℹ️'} Emoji Extraction Started\n-# Extracting from ${targetGuild.name}`);
+            .setContent(`### ${client.emoji.info} Emoji Extraction Started\n-# Extracting from ${targetGuild.name}`);
 
         const separator = new SeparatorBuilder();
 
@@ -94,7 +94,7 @@ module.exports = {
                 `**Found Emojis:** ${targetEmojis.size}\n` +
                 `**Available Slots:** ${availableSlots}\n` +
                 `**Will Upload:** ${Math.min(targetEmojis.size, availableSlots)}\n\n` +
-                `${client.emoji?.loading || '⏳'} Starting extraction...`
+                `${client.emoji.load} Starting extraction...`
             );
 
         const container = new ContainerBuilder()
@@ -141,7 +141,7 @@ module.exports = {
                             `**Progress:** ${uploaded + failed}/${emojisToUpload.length}\n` +
                             `**Uploaded:** ${uploaded}\n` +
                             `**Failed:** ${failed}\n\n` +
-                            `${client.emoji?.loading || '⏳'} Extracting...`
+                            `${client.emoji.load} Extracting...`
                         );
 
                     const progressContainer = new ContainerBuilder()
@@ -166,7 +166,7 @@ module.exports = {
 
         // Send final result
         const successHeader = new TextDisplayBuilder()
-            .setContent(`### ${client.emoji?.check || '✅'} Emoji Extraction Complete\n-# Extraction finished`);
+            .setContent(`### ${client.emoji.check} Emoji Extraction Complete\n-# Extraction finished`);
 
         const successSeparator = new SeparatorBuilder();
 

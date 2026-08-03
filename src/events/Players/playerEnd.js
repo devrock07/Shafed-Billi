@@ -13,6 +13,10 @@ module.exports = {
       } catch (e) {
         client.logger?.log(`[Autoplay] playerEnd hook error: ${e.message}`, "error");
       }
+      if (!player.queue?.current && !player.playing) {
+        const { syncVoiceChannelStatus } = require("../../utils/voiceChannelStatus");
+        await syncVoiceChannelStatus(client, player, { state: "idle" });
+      }
     } catch (error) {
       console.error("Error in playerEnd event:", error);
     }

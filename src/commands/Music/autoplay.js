@@ -58,6 +58,8 @@ module.exports = {
     const currentStatus = player.data.get("autoplay") || false;
     const newStatus = !currentStatus;
     player.data.set("autoplay", newStatus);
+    const { syncVoiceChannelStatus } = require("../../utils/voiceChannelStatus");
+    await syncVoiceChannelStatus(client, player);
 
     const statusDisplay = new TextDisplayBuilder()
       .setContent(

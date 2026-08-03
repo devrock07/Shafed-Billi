@@ -3,16 +3,20 @@ const {
   InteractionType,
   PermissionFlagsBits,
   PermissionsBitField,
+  EmbedBuilder,
   ContainerBuilder,
   TextDisplayBuilder,
   MessageFlags,
 } = require("discord.js");
 const db = require("../../schema/prefix.js");
 const db3 = require("../../schema/setup");
+const { sendWebhook } = require("../../utils/webhooks");
+const { playPreviousTrack } = require("../../utils/previousTrack");
 
 module.exports = {
   name: "interactionCreate",
   run: async (client, interaction) => {
+    await client.emojiReady?.catch(() => {});
     let prefix = client.prefix;
     const ress = await db.findOne({ Guild: interaction.guildId });
     if (ress && ress.Prefix) prefix = ress.Prefix;
@@ -230,9 +234,6 @@ module.exports = {
         }
 
         if (client.config.Webhooks?.cmdrun) {
-          const { WebhookClient, EmbedBuilder } = require("discord.js");
-          const web = new WebhookClient({ url: client.config.Webhooks.cmdrun });
-
           const getCommandString = () => {
             let cmdString = `/${interaction.commandName}`;
             if (interaction.options) {
@@ -265,7 +266,7 @@ module.exports = {
               `**${client.emoji.dot} Content:** \`${getCommandString()}\``
             );
 
-          web.send({ embeds: [commandlog] }).catch(console.error);
+          await sendWebhook(client, "cmdrun", { embeds: [commandlog] });
         }
 
       } catch (error) {
@@ -366,6 +367,21 @@ module.exports = {
         const { updateNowPlayingButtons } = require("../Players/playerStart");
 
         switch (interaction.customId) {
+          case "previous":
+            try {
+              const previousTrack = await playPreviousTrack(player, interaction.user);
+              await interaction.reply({
+                content: `**${client.emoji.check} Playing previous track: [${previousTrack.title}](${previousTrack.uri})**`,
+                ephemeral: true,
+              });
+            } catch (error) {
+              const message = error.code === "NO_HISTORY"
+                ? "No previous songs are available yet."
+                : "The previous track could not be restored.";
+              await interaction.reply({ content: `**${client.emoji.info} ${message}**`, ephemeral: true });
+            }
+            break;
+
           case "pause":
             const isPaused = !player.shoukaku.paused;
             await player.pause(isPaused);

@@ -8,5 +8,9 @@ module.exports = {
     } catch (e) {
       client.logger?.log(`[Autoplay] playerEmpty hook error: ${e.message}`, "error");
     }
+    if (!player.queue?.current && !player.playing) {
+      const { syncVoiceChannelStatus } = require("../../utils/voiceChannelStatus");
+      await syncVoiceChannelStatus(client, player, { state: "idle" });
+    }
   },
 };

@@ -7,7 +7,6 @@ const {
   SeparatorBuilder,
   MessageFlags
 } = require("discord.js");
-const Wait = require("util").promisify(setTimeout);
 
 module.exports = {
   name: "volume",
@@ -99,7 +98,6 @@ module.exports = {
       }
 
       await player.setVolume(volume);
-      await Wait(500);
 
       const successDisplay = new TextDisplayBuilder()
         .setContent(`**${client.emoji.check} Volume set to \`${volume}%\`**`);
@@ -184,7 +182,6 @@ module.exports = {
         }
 
         await currentPlayer.setVolume(newVolume);
-        await Wait(300);
 
         await interaction.update({
           components: [createVolumeContainer(newVolume)],

@@ -13,6 +13,10 @@ const {
   ComponentType
 } = require("discord.js");
 const TwoFourSeven = require("../../schema/247");
+const {
+  clearVoiceChannelStatus,
+  syncVoiceChannelStatus,
+} = require("../../utils/voiceChannelStatus");
 
 module.exports = {
   name: "voiceStateUpdate",
@@ -124,11 +128,7 @@ module.exports = {
         }
 
         if (!player) return;
-        await client.rest
-          .put(`/channels/${player.voiceId}/voice-status`, {
-            body: { status: `` },
-          })
-          .catch(() => null);
+        await clearVoiceChannelStatus(client, player);
 
         await Wait(3000);
         try {
@@ -210,11 +210,7 @@ module.exports = {
         player.data.set('pausedByAlone', true);
         player.data.set('aloneStartTime', Date.now());
 
-        await client.rest
-          .put(`/channels/${player.voiceId}/voice-status`, {
-            body: { status: `${client.emoji.pause} Paused - Waiting for listeners...` },
-          })
-          .catch(() => null);
+        await syncVoiceChannelStatus(client, player, { state: "waiting" });
 
         const textChannel = client.channels.cache.get(player.textId);
         if (textChannel) {
@@ -313,11 +309,7 @@ module.exports = {
 
         const currentTrack = player.queue?.current;
         if (currentTrack) {
-          await client.rest
-            .put(`/channels/${player.voiceId}/voice-status`, {
-              body: { status: `${client.emoji.dance} Playing **${currentTrack.title}**` },
-            })
-            .catch(() => null);
+          await syncVoiceChannelStatus(client, player, { track: currentTrack, state: "playing" });
         }
 
         const textChannel = client.channels.cache.get(player.textId);

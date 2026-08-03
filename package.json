@@ -2,22 +2,30 @@
   "$schema": "https://json.schemastore.org/package.json",
   "name": "shafed-billi",
   "version": "1.0.0",
+  "description": "A polished, component-first Discord music bot powered by Lavalink.",
   "main": "devrock.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node devrock.js",
-    "dev": "nodemon devrock.js"
+    "dev": "node --watch devrock.js",
+    "check": "node scripts/check.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20.18.1"
   },
   "dependencies": {
     "@flytri/lyrics-finder": "^1.0.7",
-    "@napi-rs/canvas": "^0.1.77",
+    "@napi-rs/canvas": "^0.1.100",
     "axios": "^1.13.6",
     "discord-hybrid-sharding": "^3.0.1",
     "discord.js": "^14.25.1",
-    "dokdo": "^1.0.1",
+    "dokdo": "1.0.1",
     "kazagumo": "^3.4.1",
     "kazagumo-spotify": "^2.1.1",
     "moment-timezone": "^0.6.0",
     "mongoose": "^9.2.4",
     "undici": "^6.0.0"
-  }
+  },
+  "license": "SEE LICENSE IN LICENSE.md"
 }

@@ -1,9 +1,17 @@
 const { prefix } = require("../../config.js");
 const { ActivityType, REST, Routes } = require("discord.js");
+const { syncApplicationEmojis } = require("../../utils/applicationEmojis");
 
 module.exports = {
   name: "clientReady",
   run: async (client) => {
+    client.emojiReady = syncApplicationEmojis(client);
+    try {
+      await client.emojiReady;
+    } catch (error) {
+      client.logger.log(`[Emoji sync] ${error.message}`, "error");
+    }
+
     client.logger.log(`${client.user.username} is now online.`, "ready");
     client.logger.log(
       `Ready on ${client.guilds.cache.size} servers, for a total of ${client.users.cache.size} users`,
@@ -39,7 +47,7 @@ module.exports = {
         console.error("Error deploying slash commands:", error);
       }
     } else {
-      console.log("\n⚠️ WARNING: No slash commands to deploy! client.slashCommands.size = 0\n");
+      console.log("\nWARNING: No slash commands to deploy! client.slashCommands.size = 0\n");
     }
 
     setInterval(() => {

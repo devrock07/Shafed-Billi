@@ -1,31 +1,64 @@
-const {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  MessageFlags,
-  SectionBuilder
-} = require("discord.js");
-const { convertTime } = require("../../utils/convert.js");
+const { AttachmentBuilder, MessageFlags } = require("discord.js");
+const { createPlayerCard } = require("../../utils/playerCard");
+const { createTrackBanner } = require("../../utils/trackBanner");
+const { syncVoiceChannelStatus } = require("../../utils/voiceChannelStatus");
+
+const BANNER_NAME = "now-playing-banner.png";
+
+async function refreshNowPlayingMessage(client, player, options = {}) {
+  try {
+    const message = player.data?.get("nowPlayingMessage");
+    const track = player.queue?.current;
+    if (!message || !track) return;
+
+    await message.edit({
+      components: [createPlayerCard(client, player, track, {
+        bannerName: player.data.get("nowPlayingBanner") ? BANNER_NAME : null,
+        controls: true,
+        ...options,
+      })],
+      flags: MessageFlags.IsComponentsV2,
+    });
+  } catch (error) {
+    player.data?.delete("nowPlayingMessage");
+    client.logger?.log(`[Player] Could not refresh controls: ${error.message}`, "warn");
+  }
+}
+
+async function updateNowPlayingButtons(client, player, isPaused) {
+  await syncVoiceChannelStatus(client, player, { state: isPaused ? "paused" : "playing" });
+  return refreshNowPlayingMessage(client, player, { paused: isPaused });
+}
 
 module.exports = {
   name: "playerStart",
   run: async (client, player, track) => {
     if (!player || !track) return;
-    
-    console.log(`[LAVALINK] Player started in guild ${player.guildId} with track: ${track.title}`);
+    if (!player.data) player.data = new Map();
+    await syncVoiceChannelStatus(client, player, { track, state: "playing" });
+    const lastTrack = player.data.get("lastTrack");
+    const changed = lastTrack && (lastTrack.identifier || lastTrack.uri) !== (track.identifier || track.uri);
+    if (changed) {
+      const history = [...(player.data.get("history") || []), lastTrack].slice(-50);
+      player.data.set("history", history);
+    }
+    player.data.set("lastTrack", track);
+
+    const channel = client.channels.cache.get(player.textId);
+    if (!channel) return;
 
     try {
-      const channel = client.channels.cache.get(player.textId);
-      if (!channel) return;
+      client.voiceHealthMonitor?.updateActivity(player.guildId);
 
+      const previous = player.data.get("nowPlayingMessage");
+      if (previous?.deletable) await previous.delete().catch(() => {});
+
+      let banner = null;
       try {
-        if (!player.data) player.data = new Map();
-        player.data.set("lastTrack", track);
-        client.voiceHealthMonitor?.updateActivity(player.guildId);
-      } catch { }
+        banner = await createTrackBanner(track);
+      } catch (error) {
+        client.logger?.log(`[Player banner] ${error.message}`, "warn");
+      }
 
       try {
         const { checkPremium } = require("../../utils/premiumUtils");
@@ -49,114 +82,24 @@ module.exports = {
         console.error("Quality filter error in playerStart:", error);
       }
 
-      const container = await createNowPlayingContainer(client, player, track);
+      if (banner) player.data.set("nowPlayingBanner", banner);
+      else player.data.delete("nowPlayingBanner");
 
-      const message = await channel.send({
-        components: [container],
-        flags: MessageFlags.IsComponentsV2
-      });
+      const payload = {
+        components: [createPlayerCard(client, player, track, {
+          bannerName: banner ? BANNER_NAME : null,
+          controls: true,
+        })],
+        flags: MessageFlags.IsComponentsV2,
+      };
+      if (banner) payload.files = [new AttachmentBuilder(banner, { name: BANNER_NAME })];
 
+      const message = await channel.send(payload);
       player.data.set("nowPlayingMessage", message);
     } catch (error) {
-      console.error("Error in playerStart event:", error);
+      client.logger?.log(`[Player] Could not send now-playing card: ${error.stack || error.message}`, "error");
     }
   },
-
-  updateNowPlayingButtons: async (client, player, isPaused) => {
-    try {
-      const message = player.data.get("nowPlayingMessage");
-      if (!message || !player.queue.current) return;
-
-      const container = await createNowPlayingContainer(client, player, player.queue.current, isPaused);
-
-      await message.edit({
-        components: [container],
-        flags: MessageFlags.IsComponentsV2
-      }).catch(() => {
-        player.data.delete("nowPlayingMessage");
-      });
-    } catch (error) {
-      console.error("Error updating now playing buttons:", error);
-    }
-  }
+  refreshNowPlayingMessage,
+  updateNowPlayingButtons,
 };
-
-async function createNowPlayingContainer(client, player, track, forcePaused = null) {
-  const isPaused = forcePaused !== null ? forcePaused : player.shoukaku.paused;
-
-  const cleanAuthorName = (author) => {
-    if (!author) return 'Unknown Artist';
-    return author.replace(/\s*-\s*Topic\s*$/i, '').trim();
-  };
-
-  const truncateTitle = (title, maxLength = 25) => {
-    if (!title) return 'Unknown Title';
-    if (title.length <= maxLength) return title;
-    return title.substring(0, maxLength) + '...';
-  };
-
-  const getCleanThumbnail = (thumbnailUrl) => {
-    if (!thumbnailUrl) return null;
-    if (thumbnailUrl.includes('i.ytimg.com') || thumbnailUrl.includes('img.youtube.com')) {
-      const videoIdMatch = thumbnailUrl.match(/vi\/([^\/]+)\//);
-      if (videoIdMatch && videoIdMatch[1]) {
-        return `https://i.ytimg.com/vi/${videoIdMatch[1]}/maxresdefault.jpg`;
-      }
-    }
-    return thumbnailUrl;
-  };
-
-  const headerDisplay = new TextDisplayBuilder()
-    .setContent(`### Now Playing [${truncateTitle(track.title)}](${track.uri})`);
-
-  const infoDisplay = new TextDisplayBuilder()
-    .setContent(
-      `> - **Author:** [${cleanAuthorName(track.author)}](${track.uri})\n` +
-      `> - **Duration:** \`${convertTime(track.length)}\`\n` +
-      `> - **Requester:** [${track.requester.username}](https://discord.com/users/${track.requester.id})`
-    );
-
-  const section = new SectionBuilder()
-    .addTextDisplayComponents(headerDisplay, infoDisplay);
-
-  const thumbnail = getCleanThumbnail(track.thumbnail || track.artworkUrl);
-  if (thumbnail) {
-    section.setThumbnailAccessory((thumb) => thumb.setURL(thumbnail));
-  }
-
-  const container = new ContainerBuilder()
-    .addSectionComponents(section)
-    .addSeparatorComponents(new SeparatorBuilder());
-
-  const row1 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("pause")
-      .setEmoji(isPaused ? client.emoji.play : client.emoji.pause)
-      .setLabel(isPaused ? "Resume" : "Pause")
-      .setStyle(isPaused ? ButtonStyle.Success : ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId("skip")
-      .setEmoji(client.emoji.skip)
-      .setLabel("Skip")
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId("stop")
-      .setEmoji(client.emoji.stop)
-      .setLabel("Stop")
-      .setStyle(ButtonStyle.Danger),
-    new ButtonBuilder()
-      .setCustomId("loop")
-      .setEmoji(client.emoji.loop)
-      .setLabel("Loop")
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId("autoplay")
-      .setEmoji(client.emoji.dance)
-      .setLabel("Autoplay")
-      .setStyle(player.data.get("autoplay") ? ButtonStyle.Success : ButtonStyle.Secondary)
-  );
-
-  container.addActionRowComponents(row1);
-
-  return container;
-}

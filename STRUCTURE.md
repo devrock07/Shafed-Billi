@@ -1,87 +1,37 @@
-# 🏗️ SHAFED BILLI - Code Structure & Architecture
+# Shafed Billi architecture
 
-This document provides a detailed breakdown of the **Shafed Billi** codebase, its directory structure, and the core packages used to build this premium music system.
+Shafed Billi follows a modular, event-driven design. `devrock.js` is the process supervisor, while `index.js` creates one bot client per cluster.
 
----
+## Runtime flow
 
-## 📂 Directory Structure
+1. `devrock.js` validates configuration and starts `discord-hybrid-sharding`.
+2. `index.js` creates `MusicClient`, installs process-level error handling, and logs in.
+3. `MusicClient` connects MongoDB, creates the Lavalink manager, and loads commands and events.
+4. Discord events route prefix commands, slash commands, autocomplete, and component interactions.
+5. Kazagumo player events publish playback cards and keep voice connections healthy.
 
-The project follows a modular and event-driven architecture for scalability and ease of maintenance.
+## Source layout
 
-### 📍 Root Directory
-- `devrock.js`: The main entry point of the bot. Initializes clusters and shards.
-- `package.json`: Contains project metadata and dependency list.
-- `README.md`: General project overview and installation guide.
-- `LICENSE.md`: Custom credit protection license by **DEVROCK**.
-- `STRUCTURE.md`: This file (Codebase documentation).
+- `commands/` — command modules grouped into Config, Favourite, Filters, Information, Music, Owner, and Utility
+- `events/Client/` — Discord gateway and interaction handlers
+- `events/Node/` — Lavalink lifecycle handlers
+- `events/Players/` — playback lifecycle handlers
+- `loaders/` — module discovery and manager setup
+- `schema/` — MongoDB models for server and user state
+- `structures/` — `MusicClient`, the application client
+- `utils/ui.js` — shared Components V2 theme and notice cards
+- `utils/playerCard.js` — reusable now-playing presentation
+- `utils/presentation.js` — safe titles, artwork, artists, and progress formatting
+- `utils/voiceHealthMonitor.js` — reconnect and idle-health logic
 
-### 📍 `src/` - Source Code
-The heart of the bot, organized into logical modules:
+## Command contract
 
-#### 📁 `commands/`
-Contains all bot commands categorized by functionality:
-- `Config/`: Server-specific settings (Prefix, 24/7 mode, etc.).
-- `Favourite/`: User-specific "Liked Songs" system.
-- `Filters/`: Audio processing filters (Bassboost, Nightcore, etc.).
-- `Information/`: General bot info (Help, Ping, Stats).
-- `Music/`: Core playback controls (Play, Skip, Stop, Volume, etc.).
-- `Owner/`: Developer-only administrative commands.
-- `Utility/`: Helpful tools (Avatar, Banner, Server info).
+Each command exports a name, category, description, and an `execute`, `slashExecute`, or `run` handler. Optional metadata controls aliases, cooldowns, permissions, voice-channel requirements, player requirements, and slash options.
 
-#### 📁 `events/`
-Handles various Discord and Lavalink events:
-- `Client/`: Discord client events (`ready`, `interactionCreate`, `messageCreate`).
-- `Node/`: Lavalink node connection events (`error`, `disconnect`, `ready`).
-- `Players/`: Music player state changes (`playerStart`, `playerEnd`, `playerEmpty`).
+## Configuration
 
-#### 📁 `loaders/`
-Automation scripts that load commands, events, and managers during startup:
-- `loadCommands.js`: Dynamically registers prefix and slash commands.
-- `loadPlayerManager.js`: Initializes the **Kazagumo** music manager.
+Runtime configuration lives in environment variables. `src/config.js` maps those variables into the legacy configuration shape used by commands and validates required values at startup. `.env.example` documents every supported setting; `.env` is ignored by Git.
 
-#### 📁 `schema/`
-**Mongoose** models for MongoDB database interactions:
-- `247.js`, `prefix.js`, `liked.js`, `blacklist.js`, etc.
+## UI conventions
 
-#### 📁 `structures/`
-Core class definitions, such as the extended `MusicClient`.
-
-#### 📁 `utils/`
-Helper functions and shared logic:
-- `logger.js`: Custom console logging system.
-- `convert.js`: Time and duration formatting.
-- `voiceHealthMonitor.js`: Ensures stable voice connections.
-
----
-
-## 📦 Core Packages & Technologies
-
-### 🌐 Frameworks
-- **[Discord.js V14](https://discord.js.org/)**: The primary library for interacting with the Discord API.
-- **[Shoukaku](https://github.com/Deivu/Shoukaku)**: A stable and updated Lavalink wrapper.
-- **[Kazagumo](https://github.com/Takiyo0/Kazagumo)**: A high-level music manager built on top of Shoukaku.
-
-### 🗄️ Database
-- **[Mongoose](https://mongoosejs.com/)**: MongoDB object modeling for storing server prefixes, user favorites, and 24/7 data.
-
-### 🎨 Visuals & UI
-- **[@napi-rs/canvas](https://github.com/Brooooooklyn/canvas)**: High-performance canvas for generating "sexy" help banners.
-- **Discord Components V2**: Latest UI elements (Containers, Media Galleries, Sections).
-
-### 🎼 Music Utilities
-- **Kazagumo-Spotify**: Support for Spotify links and playlists.
-- **@flytri/lyrics-finder**: Fetches song lyrics dynamically.
-
----
-
-## 🛠️ Design Patterns
-- **Cluster/Sharding**: Uses `discord-hybrid-sharding` for handling large numbers of servers efficiently.
-- **Middleware-style Loaders**: Centralized loading logic for cleaner code.
-- **Event-Driven**: Decoupled logic using the built-in EventEmitter for player and node states.
-
----
-
-<div align="center">
-  <p><strong>DESIGNED & DEVELOPED BY DEVROCK</strong></p>
-  <p>© 2026 SHAFED BILLI PROJECT</p>
-</div>
+User-facing screens use Discord Components V2. Shared brand colors, separators, notices, player cards, typography, and progress formatting live under `src/utils` so commands remain consistent and easier to maintain.
