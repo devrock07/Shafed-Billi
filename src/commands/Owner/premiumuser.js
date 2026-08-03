@@ -130,7 +130,7 @@ module.exports = {
           addedAt: new Date(), 
           expiresAt: expiresAt 
         },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: "after" }
       );
 
       const successMessage = expiresAt 

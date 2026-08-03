@@ -52,7 +52,7 @@ module.exports = {
           musicSource: selectedSource,
           updatedAt: Date.now()
         },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: "after" }
       );
 
       const successDisplay = new TextDisplayBuilder()
@@ -104,7 +104,7 @@ module.exports = {
             musicSource: selectedSource,
             updatedAt: Date.now()
           },
-          { upsert: true, new: true }
+          { upsert: true, returnDocument: "after" }
         );
 
         const successDisplay = new TextDisplayBuilder()
@@ -146,7 +146,7 @@ module.exports = {
               musicSource: selectedSource,
               updatedAt: Date.now()
             },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: "after" }
           );
 
           const successDisplay = new TextDisplayBuilder()

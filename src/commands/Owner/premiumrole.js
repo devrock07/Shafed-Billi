@@ -57,7 +57,7 @@ module.exports = {
       await PremiumRole.findOneAndUpdate(
         { Guild: message.guild.id },
         { Guild: message.guild.id, RoleId: role.id },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: "after" }
       );
       const d = new TextDisplayBuilder().setContent(`**Premium role set to <@&${role.id}>**`);
       const c = new ContainerBuilder().addTextDisplayComponents(d);

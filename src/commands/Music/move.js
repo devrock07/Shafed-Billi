@@ -141,7 +141,7 @@ module.exports = {
                 await TwoFourSeven.findOneAndUpdate(
                     { Guild: message.guild.id },
                     { VoiceId: channel.id, TextId: message.channel.id },
-                    { new: true }
+                    { returnDocument: "after" }
                 );
                 is247Updated = true;
             }

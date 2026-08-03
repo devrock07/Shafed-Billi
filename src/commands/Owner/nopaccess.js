@@ -611,7 +611,7 @@ module.exports = {
           noprefix: true,
           expiresAt: newExpiresAt
         },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: "after" }
       );
 
       const successMessage = newExpiresAt
