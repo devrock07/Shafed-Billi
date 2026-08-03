@@ -12,7 +12,6 @@ const { setGlobalDispatcher, Agent } = require("undici");
 setGlobalDispatcher(new Agent({ connect: { timeout: 30_000 } }));
 
 const MusicBot = require("./src/structures/MusicClient");
-const initializeCleanup = require("./src/events/Client/PremiumChecks");
 const Dokdo = require("dokdo");
 const Logger = require("./src/utils/logger");
 const config = require("./src/config");
@@ -84,5 +83,3 @@ process.on("uncaughtExceptionMonitor", (err, origin) => {
   Logger.log(`[Uncaught Exception Monitor] ${err}`, "error");
   console.error(origin, err);
 });
-
-initializeCleanup(client);

@@ -62,28 +62,6 @@ module.exports = {
         client.logger?.log(`[Player banner] ${error.message}`, "warn");
       }
 
-      try {
-        const { checkPremium } = require("../../utils/premiumUtils");
-        const { applyQualityFilters } = require("../../utils/playerUtils");
-        
-        let quality = "low";
-        const guild = client.guilds.cache.get(player.guildId);
-        
-        if (guild && track.requester) {
-          const isPremium = await checkPremium(client, track.requester, guild);
-          console.log(`[LAVALINK] Premium check for ${track.requester.tag || track.requester.id}: ${isPremium}`);
-          if (isPremium) {
-            quality = "premium";
-          }
-        }
-        
-        console.log(`[LAVALINK] Applying ${quality} quality filters to player in guild ${player.guildId}`);
-        // Temporarily re-enabling but with safe default to see if it works
-        await applyQualityFilters(player, quality);
-      } catch (error) {
-        console.error("Quality filter error in playerStart:", error);
-      }
-
       if (banner) player.data.set("nowPlayingBanner", banner);
       else player.data.delete("nowPlayingBanner");
 

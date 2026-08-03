@@ -4,7 +4,7 @@ const { Client, GatewayIntentBits, Collection } = require("discord.js");
 const mongoose = require("mongoose");
 const { ClusterClient, getInfo } = require("discord-hybrid-sharding");
 const loadPlayerManager = require("../loaders/loadPlayerManager");
-const permissionHandler = require("../events/Client/PremiumChecks");
+const initializeAccessCleanup = require("../utils/accessCleanup");
 const VoiceHealthMonitor = require("../utils/voiceHealthMonitor");
 
 class MusicBot extends Client {
@@ -62,7 +62,7 @@ class MusicBot extends Client {
     this._connectMongodb().catch((error) => {
       this.logger.log(`[DB] Initial connection failed: ${error.message}`, "error");
     });
-    permissionHandler(this);
+    initializeAccessCleanup(this);
     loadPlayerManager(this);
     [
       "loadClients",
