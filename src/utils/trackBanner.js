@@ -59,25 +59,21 @@ async function renderTrackBanner(artwork, track = {}) {
   ctx.fillStyle = shade;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-  ctx.fillStyle = "rgba(242, 243, 245, 0.72)";
-  ctx.font = "600 18px sans-serif";
-  ctx.fillText("NOW PLAYING", 48, 52);
-
   ctx.fillStyle = "#f2f3f5";
   ctx.font = "700 42px sans-serif";
-  ctx.fillText(fitText(ctx, track.title || "Unknown track", 900), 48, 111);
+  ctx.fillText(fitText(ctx, track.title || "Unknown track", 900), 48, 78);
 
   ctx.fillStyle = "rgba(242, 243, 245, 0.86)";
   ctx.font = "500 25px sans-serif";
-  ctx.fillText(fitText(ctx, cleanAuthorName(track.author), 900), 48, 155);
+  ctx.fillText(fitText(ctx, cleanAuthorName(track.author), 900), 48, 128);
 
   const requester = track.requester?.username || track.requester?.displayName || "Listener";
   ctx.fillStyle = "rgba(242, 243, 245, 0.58)";
   ctx.font = "500 18px sans-serif";
-  ctx.fillText(fitText(ctx, `Requested by ${requester}`, 900), 48, 205);
+  ctx.fillText(fitText(ctx, `Requested by ${requester}`, 900), 48, 184);
 
   ctx.fillStyle = "rgba(242, 243, 245, 0.38)";
-  ctx.fillRect(48, 224, 150, 2);
+  ctx.fillRect(48, 209, 150, 2);
 
   return canvas.encode("png");
 }
