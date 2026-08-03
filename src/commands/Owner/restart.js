@@ -134,7 +134,7 @@ module.exports = {
       if (!i.deferred) await i.deferUpdate();
 
       if (i.customId === "restart") {
-        const shardCount = client.cluster.info.TOTAL_SHARDS;
+        const shardCount = client.clusterInfo?.TOTAL_SHARDS || client.ws.shards.size || 1;
         const serverCount = client.guilds.cache.size;
         const activePlayerCount = playingGuilds.length;
 
@@ -164,8 +164,9 @@ module.exports = {
           flags: MessageFlags.IsComponentsV2
         });
 
-        console.log("Restarting all shards...");
-        await client.cluster.respawnAll();
+        console.log("Restarting bot process...");
+        if (client.cluster) await client.cluster.respawnAll();
+        else setTimeout(() => process.exit(0), 250).unref();
       } else if (i.customId === "cancel") {
         collector.stop();
 
@@ -313,7 +314,7 @@ module.exports = {
       if (!interaction.deferred) await interaction.deferUpdate();
 
       if (interaction.customId === "restart") {
-        const shardCount = client.cluster.info.TOTAL_SHARDS;
+        const shardCount = client.clusterInfo?.TOTAL_SHARDS || client.ws.shards.size || 1;
         const serverCount = client.guilds.cache.size;
         const activePlayerCount = playingGuilds.length;
 
@@ -343,8 +344,9 @@ module.exports = {
           flags: MessageFlags.IsComponentsV2
         });
 
-        console.log("Restarting all shards...");
-        await client.cluster.respawnAll();
+        console.log("Restarting bot process...");
+        if (client.cluster) await client.cluster.respawnAll();
+        else setTimeout(() => process.exit(0), 250).unref();
       } else if (interaction.customId === "cancel") {
         collector.stop();
 

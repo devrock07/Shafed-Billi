@@ -5,10 +5,12 @@ const mongoose = require("mongoose");
 const { ClusterClient, getInfo } = require("discord-hybrid-sharding");
 const loadPlayerManager = require("../loaders/loadPlayerManager");
 const initializeAccessCleanup = require("../utils/accessCleanup");
+const { discordShardOptions, resolveClusterInfo } = require("../utils/clusterMode");
 const VoiceHealthMonitor = require("../utils/voiceHealthMonitor");
 
 class MusicBot extends Client {
   constructor() {
+    const clusterInfo = resolveClusterInfo(getInfo);
     super({
       intents: [
         GatewayIntentBits.Guilds,
@@ -25,8 +27,7 @@ class MusicBot extends Client {
         parse: ["users"],
         repliedUser: false,
       },
-      shards: getInfo().SHARD_LIST,
-      shardCount: getInfo().TOTAL_SHARDS,
+      ...discordShardOptions(clusterInfo),
     });
 
     this.commands = new Collection();
@@ -44,7 +45,14 @@ class MusicBot extends Client {
     this.logger = require("../utils/logger.js");
     this.emoji = require("../emojis.js");
     this.emojiReady = Promise.resolve(this.emoji);
-    this.cluster = new ClusterClient(this);
+    this.cluster = clusterInfo ? new ClusterClient(this) : null;
+    this.clusterInfo = clusterInfo || {
+      SHARD_LIST: [0],
+      TOTAL_SHARDS: 1,
+      CLUSTER_COUNT: 1,
+      CLUSTER: 0,
+      CLUSTER_MANAGER_MODE: "standalone",
+    };
     if (!this.token) this.token = this.config.token;
     this.manager = null;
     this.spamMap = new Map();
