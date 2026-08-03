@@ -2,6 +2,8 @@ const {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  MediaGalleryBuilder,
+  MediaGalleryItemBuilder,
   SectionBuilder,
 } = require("discord.js");
 const { artworkUrl, cleanAuthorName, safeLinkLabel } = require("./presentation");
@@ -68,7 +70,16 @@ function createPlayerCard(client, player, track, options = {}) {
   );
   const artwork = artworkUrl(track);
   const card = container();
-  if (artwork) {
+  if (options.bannerName) {
+    card
+      .addTextDisplayComponents(text(`## ${paused ? "Paused" : "Now playing"}`))
+      .addMediaGalleryComponents(new MediaGalleryBuilder().addItems(
+        new MediaGalleryItemBuilder()
+          .setURL(`attachment://${options.bannerName}`)
+          .setDescription(`${title} artwork banner`),
+      ))
+      .addTextDisplayComponents(text(`### [${title}](${uri})`), details);
+  } else if (artwork) {
     const section = new SectionBuilder()
       .addTextDisplayComponents(heading, details)
       .setThumbnailAccessory((thumbnail) => thumbnail.setURL(artwork));

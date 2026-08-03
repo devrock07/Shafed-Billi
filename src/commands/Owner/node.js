@@ -45,7 +45,7 @@ module.exports = {
 
     const connectionDisplay = new TextDisplayBuilder()
       .setContent(
-        `**Groove is ${status}**\n` +
+        `**Billa is ${status}**\n` +
         `Player \`:\` \`${node.stats.players}\`\n` +
         `Playing Players \`:\` \`${node.stats.playingPlayers}\`\n` +
         `Uptime \`:\` \`${uptime}\``

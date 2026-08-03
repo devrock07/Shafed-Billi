@@ -1,6 +1,9 @@
-const { MessageFlags } = require("discord.js");
+const { AttachmentBuilder, MessageFlags } = require("discord.js");
 const { createPlayerCard } = require("../../utils/playerCard");
+const { createTrackBanner } = require("../../utils/trackBanner");
 const { syncVoiceChannelStatus } = require("../../utils/voiceChannelStatus");
+
+const BANNER_NAME = "now-playing-banner.png";
 
 async function refreshNowPlayingMessage(client, player, options = {}) {
   try {
@@ -9,7 +12,11 @@ async function refreshNowPlayingMessage(client, player, options = {}) {
     if (!message || !track) return;
 
     await message.edit({
-      components: [createPlayerCard(client, player, track, { controls: true, ...options })],
+      components: [createPlayerCard(client, player, track, {
+        bannerName: player.data.get("nowPlayingBanner") ? BANNER_NAME : null,
+        controls: true,
+        ...options,
+      })],
       flags: MessageFlags.IsComponentsV2,
     });
   } catch (error) {
@@ -46,10 +53,26 @@ module.exports = {
       const previous = player.data.get("nowPlayingMessage");
       if (previous?.deletable) await previous.delete().catch(() => {});
 
-      const message = await channel.send({
-        components: [createPlayerCard(client, player, track, { controls: true })],
+      let banner = null;
+      try {
+        banner = await createTrackBanner(track);
+      } catch (error) {
+        client.logger?.log(`[Player banner] ${error.message}`, "warn");
+      }
+
+      if (banner) player.data.set("nowPlayingBanner", banner);
+      else player.data.delete("nowPlayingBanner");
+
+      const payload = {
+        components: [createPlayerCard(client, player, track, {
+          bannerName: banner ? BANNER_NAME : null,
+          controls: true,
+        })],
         flags: MessageFlags.IsComponentsV2,
-      });
+      };
+      if (banner) payload.files = [new AttachmentBuilder(banner, { name: BANNER_NAME })];
+
+      const message = await channel.send(payload);
       player.data.set("nowPlayingMessage", message);
     } catch (error) {
       client.logger?.log(`[Player] Could not send now-playing card: ${error.stack || error.message}`, "error");

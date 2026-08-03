@@ -36,12 +36,17 @@ function player(edit) {
 }
 
 test("player card is compact, timer-free, and uses application emojis", () => {
-  const json = createPlayerCard(client, player(async () => {}), track, { controls: true }).toJSON();
+  const json = createPlayerCard(client, player(async () => {}), track, {
+    bannerName: "now-playing-banner.png",
+    controls: true,
+  }).toJSON();
   const serialized = JSON.stringify(json);
   const rows = json.components.filter((component) => component.type === 1);
   const buttons = rows.flatMap((row) => row.components);
 
   assert.doesNotMatch(serialized, /00:00|03:47|━|─/);
+  assert.match(serialized, /attachment:\/\/now-playing-banner\.png/);
+  assert.doesNotMatch(serialized, /thumbnail/);
   assert.equal(rows.length, 2);
   assert.equal(buttons.length, 6);
   assert.ok(buttons.some((button) => button.custom_id === "previous"));

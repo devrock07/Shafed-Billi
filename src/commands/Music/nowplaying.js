@@ -1,12 +1,15 @@
-const { MessageFlags } = require("discord.js");
+const { AttachmentBuilder, MessageFlags } = require("discord.js");
 const { createPlayerCard } = require("../../utils/playerCard");
+const { createTrackBanner } = require("../../utils/trackBanner");
 const { noticePayload } = require("../../utils/ui");
+
+const BANNER_NAME = "now-playing-banner.png";
 
 module.exports = {
   name: "nowplaying",
   aliases: ["np", "current"],
   category: "Music",
-  description: "Show the current track and live playback progress",
+  description: "Show the current track and playback details",
   cooldown: 3,
   player: true,
   inVoiceChannel: false,
@@ -37,10 +40,24 @@ module.exports = {
       }));
     }
 
-    const response = await message.reply({
-      components: [createPlayerCard(client, player, track)],
+    let banner = player.data?.get("nowPlayingBanner") || null;
+    if (!banner) {
+      try {
+        banner = await createTrackBanner(track);
+      } catch (error) {
+        client.logger?.log(`[Player banner] ${error.message}`, "warn");
+      }
+    }
+
+    const payload = {
+      components: [createPlayerCard(client, player, track, {
+        bannerName: banner ? BANNER_NAME : null,
+      })],
       flags: MessageFlags.IsComponentsV2,
-    });
+    };
+    if (banner) payload.files = [new AttachmentBuilder(banner, { name: BANNER_NAME })];
+
+    const response = await message.reply(payload);
     return response;
   },
 };

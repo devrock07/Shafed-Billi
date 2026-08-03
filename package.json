@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@flytri/lyrics-finder": "^1.0.7",
+    "@napi-rs/canvas": "^0.1.100",
     "axios": "^1.13.6",
     "discord-hybrid-sharding": "^3.0.1",
     "discord.js": "^14.25.1",
