@@ -5,6 +5,7 @@ const {
 } = require("discord.js");
 const Wait = require("util").promisify(setTimeout);
 const emoji = require("../../emojis");
+const { stopPlaybackModes } = require("../../utils/playbackModes");
 
 module.exports = {
   name: "stop",
@@ -71,7 +72,7 @@ module.exports = {
     }
 
     player.queue.clear();
-    player.loop = "none";
+    stopPlaybackModes(player);
     player.playing = false;
     player.paused = false;
     await player.skip();

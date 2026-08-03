@@ -12,6 +12,7 @@ const db = require("../../schema/prefix.js");
 const db3 = require("../../schema/setup");
 const { sendWebhook } = require("../../utils/webhooks");
 const { playPreviousTrack } = require("../../utils/previousTrack");
+const { setAutoplay, setLoopMode, stopPlaybackModes } = require("../../utils/playbackModes");
 
 module.exports = {
   name: "interactionCreate",
@@ -402,6 +403,7 @@ module.exports = {
 
           case "stop":
             player.queue.clear();
+            stopPlaybackModes(player);
             await player.skip();
             await interaction.reply({ 
               content: `**${client.emoji.check} Player Stopped**`, 
@@ -413,7 +415,7 @@ module.exports = {
             const modes = ["none", "track", "queue"];
             const currentModeIndex = modes.indexOf(player.loop || "none");
             const nextMode = modes[(currentModeIndex + 1) % modes.length];
-            player.loop = nextMode;
+            setLoopMode(player, nextMode);
             await updateNowPlayingButtons(client, player, player.shoukaku.paused);
             await interaction.reply({ 
               content: `**${client.emoji.check} Loop mode set to: \`${nextMode.charAt(0).toUpperCase() + nextMode.slice(1)}\`**`, 
@@ -424,10 +426,10 @@ module.exports = {
           case "autoplay":
             const currentAuto = player.data.get("autoplay") || false;
             const newAutoStatus = !currentAuto;
-            player.data.set("autoplay", newAutoStatus);
+            const { disabledLoop } = setAutoplay(player, newAutoStatus);
             await updateNowPlayingButtons(client, player, player.shoukaku.paused);
             await interaction.reply({ 
-              content: `**${client.emoji.check} Autoplay has been \`${newAutoStatus ? "Enabled" : "Disabled"}\`**`, 
+              content: `**${client.emoji.check} Autoplay has been \`${newAutoStatus ? "Enabled" : "Disabled"}\`**${disabledLoop ? "\nLoop was disabled." : ""}`,
               ephemeral: true 
             }).catch(() => { });
             break;

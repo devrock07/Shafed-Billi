@@ -2,6 +2,7 @@ const { AttachmentBuilder, MessageFlags } = require("discord.js");
 const { createPlayerCard } = require("../../utils/playerCard");
 const { createTrackBanner } = require("../../utils/trackBanner");
 const { syncVoiceChannelStatus } = require("../../utils/voiceChannelStatus");
+const { reconcilePlaybackModes } = require("../../utils/playbackModes");
 
 const BANNER_NAME = "now-playing-banner.png";
 
@@ -35,6 +36,7 @@ module.exports = {
   run: async (client, player, track) => {
     if (!player || !track) return;
     if (!player.data) player.data = new Map();
+    reconcilePlaybackModes(player);
     await syncVoiceChannelStatus(client, player, { track, state: "playing" });
     const lastTrack = player.data.get("lastTrack");
     const changed = lastTrack && (lastTrack.identifier || lastTrack.uri) !== (track.identifier || track.uri);

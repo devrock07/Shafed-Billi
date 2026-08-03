@@ -7,6 +7,7 @@ const {
   ButtonStyle,
   MessageFlags
 } = require("discord.js");
+const { setAutoplay } = require("../../utils/playbackModes");
 
 module.exports = {
   name: "autoplay",
@@ -57,13 +58,14 @@ module.exports = {
 
     const currentStatus = player.data.get("autoplay") || false;
     const newStatus = !currentStatus;
-    player.data.set("autoplay", newStatus);
+    const { disabledLoop } = setAutoplay(player, newStatus);
     const { syncVoiceChannelStatus } = require("../../utils/voiceChannelStatus");
     await syncVoiceChannelStatus(client, player);
 
     const statusDisplay = new TextDisplayBuilder()
       .setContent(
-        `**${client.emoji.check} Autoplay has been \`${newStatus ? "Enabled" : "Disabled"}\`.**`
+        `**${client.emoji.check} Autoplay has been \`${newStatus ? "Enabled" : "Disabled"}\`.**` +
+        (disabledLoop ? "\nLoop was disabled so autoplay can choose a different song." : "")
       );
 
     const container = new ContainerBuilder()
